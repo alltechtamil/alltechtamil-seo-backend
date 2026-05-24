@@ -115,6 +115,8 @@ export class AuthController {
 
       ApiResponse.success(res, 200, 'Token refreshed successfully.', { accessToken });
     } catch (error) {
+      // Clear the invalid cookie to prevent frontend middleware redirect loops
+      res.clearCookie(REFRESH_COOKIE_NAME, clearCookieOptions());
       ApiResponse.handleControllerError(res, req, error, FILE_NAME, 'refresh');
     }
   }

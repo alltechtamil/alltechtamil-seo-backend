@@ -151,7 +151,7 @@ export class EmailService {
 
       const info = await transporter.sendMail({
         from: `"AllTechTamil System Alert" <${config.mail.from}>`,
-        to: config.mail.from, // Sending to the MAIL_FROM address as requested
+        to: config.mail.adminAlertEmail, // Send to dedicated error notification email
         subject: `[${severity.toUpperCase()}] System Alert — ${config.server.env} | ${timestamp}`,
         html,
       });

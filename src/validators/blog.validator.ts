@@ -141,7 +141,16 @@ export const createBlogSchema = Joi.object({
  * Validation schema for updating an existing Blog Post.
  * All fields are optional.
  */
-export const updateBlogSchema = createBlogSchema.fork(['title', 'content_html'], (schema) => schema.optional());
+export const updateBlogSchema = createBlogSchema
+  .fork(['title', 'content_html'], (schema) => schema.optional())
+  .keys({
+    // Overwrite the original fields to remove their .default() behaviors during updates
+    status: Joi.string()
+      .valid(...Object.values(BlogStatus))
+      .optional()
+      .messages({ 'any.only': 'Status must be either draft or published.' }),
+    is_featured: Joi.boolean().optional().messages({ 'boolean.base': 'Is Featured must be a boolean.' }),
+  });
 
 /**
  * Validation schema specifically for updating just the status of a blog.

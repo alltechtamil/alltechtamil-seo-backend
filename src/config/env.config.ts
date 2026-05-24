@@ -49,6 +49,7 @@ export const config = {
     user: required('MAIL_USER'),
     pass: required('MAIL_PASS'),
     from: required('MAIL_FROM'),
+    adminAlertEmail: process.env.ERROR_NOTIFICATION_EMAIL || required('MAIL_FROM'),
   },
   github: {
     token: required('GITHUB_TOKEN'),

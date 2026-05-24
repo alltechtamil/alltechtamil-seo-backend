@@ -489,6 +489,26 @@ GET {{baseUrl}}/public/tags/angularjs
 ### 14. Get Active Ads by Placement
 GET {{baseUrl}}/public/ads?placement=HOME_TOP
 
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Ads retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "7632da3d-0fe3-4f61-b57b-d3a53d9877bf",
+#       "name": "Google AdSense Header",
+#       "placement": "HOME_TOP",
+#       "adScript": "<script async src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'></script><ins class='adsbygoogle'></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script>",
+#       "deviceTarget": "all",
+#       "isActive": true,
+#       "sortOrder": 0,
+#       "createdAt": "2026-05-23T16:45:38.622Z",
+#       "updatedAt": "2026-05-23T16:45:38.622Z"
+#     }
+#   ],
+#   "meta": null,
+#   "timestamp": "2026-05-24T11:06:22.833Z"
+# }
 
 ### ==========================================
 ### AUTH & ADMIN ROUTES

@@ -4,51 +4,9 @@ import { Request, Response, NextFunction } from 'express';
 /**
  * Defined in BACKEND_TECHNICAL_DOCUMENTATION.txt - SECTION 9
  */
-const ALLOWED_TAGS = [
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'p',
-  'br',
-  'hr',
-  'strong',
-  'em',
-  'u',
-  's',
-  'blockquote',
-  'code',
-  'pre',
-  'ul',
-  'ol',
-  'li',
-  'a',
-  'img',
-  'table',
-  'thead',
-  'tbody',
-  'tr',
-  'th',
-  'td',
-  'figure',
-  'figcaption',
-  'div',
-  'span',
-  'script', // Explicitly requested by user for code/embed functionalities
-];
-
-const ALLOWED_ATTRIBUTES = {
-  a: ['href', 'title', 'target', 'rel'],
-  img: ['src', 'alt', 'width', 'height', 'loading'],
-  td: ['colspan', 'rowspan'],
-  th: ['colspan', 'rowspan'],
-  div: ['class'],
-  span: ['class'],
-  script: ['src', 'type', 'async', 'defer', 'charset'],
-  '*': ['id', 'class'], // Allowed on all safe tags
-};
+// We allow all tags and attributes since only trusted admins write blogs
+const ALLOWED_TAGS: false = false;
+const ALLOWED_ATTRIBUTES: false = false;
 
 /**
  * Direct utility function for sanitizing raw HTML strings.
@@ -70,9 +28,8 @@ export const sanitizeHtml = (dirtyHtml: string): string => {
       img: ['http', 'https', 'data'],
       script: ['http', 'https'],
     },
-    // By default, sanitize-html strips the text content of script, style, textarea.
-    // We override this to remove 'script' from the list, allowing inline scripts.
-    nonTextTags: ['style', 'textarea', 'noscript'],
+    // Do not strip text from any tags
+    nonTextTags: [],
     // Force specific attributes on links to prevent tab-nabbing
     transformTags: {
       a: sanitizeHtmlLib.simpleTransform('a', {
