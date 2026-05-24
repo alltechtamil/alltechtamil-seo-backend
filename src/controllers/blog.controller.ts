@@ -3,6 +3,7 @@ import { BlogService, IBlogFilters, IBlogPayload } from '../services/blog.servic
 import { ApiResponse } from '../utils/apiResponse';
 import { buildPaginationQuery } from '../utils/paginate';
 import { BlogStatus } from '../types/enums';
+import { triggerFrontendRevalidation } from '../utils/revalidate';
 
 const FILE_NAME = 'blog.controller.ts';
 
@@ -94,6 +95,9 @@ export class BlogController {
 
       const blog = await BlogService.create(payload, authorId);
 
+      // Trigger cache purge asynchronously
+      triggerFrontendRevalidation('blog', blog.slug);
+
       ApiResponse.success(res, 201, 'Blog created successfully.', blog);
     } catch (error) {
       ApiResponse.handleControllerError(res, req, error, FILE_NAME, 'create');
@@ -110,6 +114,9 @@ export class BlogController {
       const payload: Partial<IBlogPayload> = req.body;
 
       const blog = await BlogService.update(id, payload);
+
+      // Trigger cache purge asynchronously
+      triggerFrontendRevalidation('blog', blog.slug);
 
       ApiResponse.success(res, 200, 'Blog updated successfully.', blog);
     } catch (error) {
@@ -129,6 +136,9 @@ export class BlogController {
       const parsedPublishedAt = published_at ? new Date(published_at) : undefined;
 
       const blog = await BlogService.updateStatus(id, status, parsedPublishedAt);
+
+      // Trigger cache purge asynchronously
+      triggerFrontendRevalidation('blog', blog.slug);
 
       ApiResponse.success(res, 200, `Blog status updated to '${status}'.`, blog);
     } catch (error) {
