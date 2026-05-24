@@ -1,0 +1,1688 @@
+==================================================
+BACKEND TECHNICAL DOCUMENTATION
+SEO Optimized Blog Platform
+==================================================
+Version     : 1.0.0
+Stack       : Node.js + Express.js + TypeScript + PostgreSQL + Sequelize
+Prepared for: Backend Engineering Team
+==================================================
+
+
+==================================================
+SECTION 1: PROJECT OVERVIEW
+==================================================
+
+Platform Type   : SEO-optimized blog platform with admin panel
+Backend Role    : REST API server, business logic, auth, image pipeline, analytics
+Deployment      : VPS / Railway / Render
+Database        : PostgreSQL (via Sequelize ORM + sequelize-typescript)
+Auth Model      : JWT access token + refresh token via HTTP-only cookies
+Image Storage   : GitHub Contents API + jsDelivr CDN
+Image Processor : Sharp
+
+
+==================================================
+SECTION 2: BACKEND FOLDER STRUCTURE
+==================================================
+
+backend/
+├── src/
+│   ├── config/
+│   │   ├── database.ts              # Sequelize connection config
+│   │   ├── env.config.ts            # Env variable loader and validator
+│   │   ├── image.config.ts          # Sharp & GitHub Image storage configurations
+│   │   └── constants.ts             # App-wide constants
+│   │
+│   ├── models/
+│   │   ├── index.ts                 # Sequelize init + associations
+│   │   ├── User.ts
+│   │   ├── RefreshToken.ts
+│   │   ├── Category.ts
+│   │   ├── Tag.ts
+│   │   ├── Blog.ts
+│   │   ├── BlogTag.ts
+│   │   ├── Image.ts
+│   │   ├── BlogAnalytics.ts
+│   │   ├── PageViewLog.ts
+│   │   ├── SearchLog.ts
+│   │   ├── AdUnit.ts
+│   │   └── ErrorLog.ts
+│   │
+│   ├── migrations/
+│   │   ├── 001-create-users.ts
+│   │   ├── 002-create-refresh-tokens.ts
+│   │   ├── 003-create-categories.ts
+│   │   ├── 004-create-tags.ts
+│   │   ├── 005-create-blogs.ts
+│   │   ├── 006-create-blog-tags.ts
+│   │   ├── 007-create-images.ts
+│   │   ├── 008-create-blog-analytics.ts
+│   │   ├── 009-create-page-view-logs.ts
+│   │   ├── 010-create-search-logs.ts
+│   │   ├── 011-create-ad-units.ts
+│   │   └── 012-create-error-logs.ts
+│   │
+│   ├── seeders/
+│   │   ├── 001-seed-superadmin.ts
+│   │   └── 002-seed-categories.ts
+│   │
+│   ├── middleware/
+│   │   ├── authenticate.ts          # JWT access token verification
+│   │   ├── authorize.ts             # Role-based access control
+│   │   ├── validateRequest.ts       # Joi schema validation middleware
+│   │   ├── rateLimiter.ts           # Express-rate-limit configs
+│   │   ├── sanitizeHtml.ts          # DOMPurify/sanitize-html middleware
+│   │   ├── errorHandler.ts          # Global error handler
+│   │   ├── requestLogger.ts         # HTTP request logger & tracing
+│   │   ├── cors.middleware.ts       # CORS configuration policy
+│   │   ├── notFound.middleware.ts   # Route not found fallback handler
+│   │   └── multer.middleware.ts     # Stateless image upload buffer handler
+│   │
+│   ├── controllers/
+│   │   ├── auth.controller.ts
+│   │   ├── user.controller.ts
+│   │   ├── blog.controller.ts
+│   │   ├── category.controller.ts
+│   │   ├── tag.controller.ts
+│   │   ├── image.controller.ts
+│   │   ├── analytics.controller.ts
+│   │   ├── ad.controller.ts
+│   │   └── public.controller.ts     # Public-facing read endpoints
+│   │
+│   ├── services/
+│   │   ├── auth.service.ts
+│   │   ├── user.service.ts
+│   │   ├── blog.service.ts
+│   │   ├── category.service.ts
+│   │   ├── tag.service.ts
+│   │   ├── image.service.ts         # Sharp processing
+│   │   ├── github.service.ts        # GitHub Contents API
+│   │   ├── cdn.service.ts           # jsDelivr URL generation
+│   │   ├── analytics.service.ts
+│   │   ├── search.service.ts
+│   │   ├── ad.service.ts
+│   │   └── email.service.ts
+│   │
+│   ├── routes/
+│   │   ├── index.ts                 # Root router
+│   │   ├── auth.routes.ts
+│   │   ├── user.routes.ts
+│   │   ├── blog.routes.ts
+│   │   ├── category.routes.ts
+│   │   ├── tag.routes.ts
+│   │   ├── image.routes.ts
+│   │   ├── analytics.routes.ts
+│   │   ├── ad.routes.ts
+│   │   └── public.routes.ts
+│   │
+│   ├── validators/
+│   │   ├── auth.validator.ts
+│   │   ├── blog.validator.ts
+│   │   ├── category.validator.ts
+│   │   ├── tag.validator.ts
+│   │   ├── image.validator.ts
+│   │   └── ad.validator.ts
+│   │
+│   ├── utils/
+│   │   ├── slugify.ts               # Slug generator
+│   │   ├── readTime.ts              # Read time calculator
+│   │   ├── hashFingerprint.ts       # Visitor hash generator
+│   │   ├── generateFilename.ts      # Unique image filename generator
+│   │   ├── buildCdnUrl.ts           # jsDelivr CDN URL builder
+│   │   ├── paginate.ts              # Pagination helper
+│   │   ├── apiResponse.ts           # Standardized API response wrapper
+│   │   └── logger.ts                # Winston logger instance
+│   │
+│   ├── types/
+│   │   ├── express.d.ts             # Augmented Express Request type
+│   │   ├── enums.ts                 # Shared enum types
+│   │   └── common.ts                # Shared interfaces
+│   │
+│   ├── jobs/
+│   │   └── analyticsAggregator.ts   # Cron: aggregate page_view_logs
+│   │
+│   └── app.ts                       # Express app setup
+│   └── server.ts                    # HTTP server entry point
+│
+├── .env
+├── .env.example
+├── .sequelizerc
+├── .eslintrc.json
+├── .eslintignore
+├── .prettierrc
+├── .prettierignore
+├── tsconfig.json
+├── package.json
+└── nodemon.json
+
+
+==================================================
+SECTION 3: ENVIRONMENT VARIABLES
+==================================================
+
+# Server
+NODE_ENV=development
+PORT=5000
+FRONTEND_URL=https://yourdomain.com
+
+# Email Settings
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USER=bionix4004@gmail.com
+MAIL_PASS=fppxkoqoaezvvble
+MAIL_FROM=mathanmithun8838@gmail.com
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=blog_db
+DB_USER=postgres
+DB_PASSWORD=yourpassword
+DB_SSL=true
+
+# JWT
+JWT_ACCESS_SECRET=your_access_secret_32chars
+JWT_REFRESH_SECRET=your_refresh_secret_32chars
+JWT_ACCESS_EXPIRES_IN=15m
+JWT_REFRESH_EXPIRES_IN=7d
+
+# GitHub Image Storage
+GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx
+GITHUB_OWNER=your_github_username
+GITHUB_REPO=your_image_repo_name
+GITHUB_BRANCH=main
+
+# jsDelivr CDN Base
+JSDELIVR_BASE=https://cdn.jsdelivr.net/gh/your_github_username/your_image_repo_name@main
+
+# Image Limits
+MAX_IMAGE_SIZE_BYTES=5242880    # 5MB
+ALLOWED_MIME_TYPES=image/jpeg,image/png,image/webp,image/gif
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000     # 15 minutes
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_AUTH_WINDOW_MS=900000 # 15 minutes
+RATE_LIMIT_AUTH_MAX_REQUESTS=10  # 10 requests
+
+
+==================================================
+SECTION 4: DATABASE CONFIGURATION
+==================================================
+
+-- src/config/database.ts --
+
+Connect using Sequelize with the following settings:
+  dialect         : postgres
+  host            : DB_HOST
+  port            : DB_PORT
+  database        : DB_NAME
+  username        : DB_USER
+  password        : DB_PASSWORD
+  logging         : false in production, console.log in development
+  pool.max        : 10
+  pool.min        : 2
+  pool.acquire    : 30000
+  pool.idle       : 10000
+  define.timestamps          : true
+  define.underscored         : true
+  define.freezeTableName     : true
+
+-- .sequelizerc --
+
+Paths:
+  config          : src/config/database.js (compiled)
+  models-path     : src/models
+  migrations-path : src/migrations
+  seeders-path    : src/seeders
+
+
+==================================================
+SECTION 5: MODEL DEFINITIONS
+==================================================
+
+--------------------------------------------------
+Model: User
+--------------------------------------------------
+Table: users
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  name            : STRING(100), allowNull false
+  email           : STRING(255), allowNull false, unique true
+  password_hash   : STRING(255), allowNull false
+  role            : ENUM('superadmin','editor'), defaultValue 'editor'
+  avatar_url      : STRING(500), allowNull true
+  is_active       : BOOLEAN, defaultValue true
+  last_login_at   : DATE (TIMESTAMPTZ), allowNull true
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+Instance Methods:
+  validatePassword(plain: string): Promise<boolean>
+    → bcrypt.compare(plain, this.password_hash)
+
+Hooks:
+  beforeCreate: hash password with bcrypt, saltRounds=12
+  beforeUpdate: if password_hash changed, re-hash
+
+Associations:
+  hasMany RefreshToken (foreignKey: user_id, onDelete: 'CASCADE')
+  hasMany Blog (foreignKey: author_id, onDelete: 'RESTRICT')
+  hasMany Image (foreignKey: uploaded_by, onDelete: 'RESTRICT')
+
+
+--------------------------------------------------
+Model: RefreshToken
+--------------------------------------------------
+Table: refresh_tokens
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  user_id         : UUID, FK → users, allowNull false (ON DELETE CASCADE)
+  token_hash      : STRING(255), allowNull false, unique true
+  expires_at      : DATE (TIMESTAMPTZ), allowNull false
+  ip_address      : STRING(45), allowNull true
+  user_agent      : TEXT, allowNull true
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+Associations:
+  belongsTo User (foreignKey: user_id, onDelete: 'CASCADE')
+
+
+--------------------------------------------------
+Model: Category
+--------------------------------------------------
+Table: categories
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  name            : STRING(100), allowNull false, unique true
+  slug            : STRING(120), allowNull false, unique true
+  description     : TEXT, allowNull true
+  meta_title      : STRING(160), allowNull true
+  meta_description: STRING(320), allowNull true
+  is_active       : BOOLEAN, defaultValue true
+  sort_order      : INTEGER, defaultValue 0
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+Hooks:
+  beforeValidate: auto-generate slug from name if not provided
+
+Associations:
+  hasMany Blog (foreignKey: category_id, onDelete: 'SET_NULL')
+
+
+--------------------------------------------------
+Model: Tag
+--------------------------------------------------
+Table: tags
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  name            : STRING(100), allowNull false, unique true
+  slug            : STRING(120), allowNull false, unique true
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+Hooks:
+  beforeValidate: auto-generate slug from name
+
+Associations:
+  belongsToMany Blog through BlogTag (onDelete: 'CASCADE')
+
+
+--------------------------------------------------
+Model: Blog
+--------------------------------------------------
+Table: blogs
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  title           : STRING(300), allowNull false
+  slug            : STRING(320), allowNull false, unique true
+  excerpt         : TEXT, allowNull true
+  content_html    : TEXT, allowNull false
+  author_id       : UUID, FK → users, allowNull false (ON DELETE RESTRICT)
+  category_id     : UUID, FK → categories, allowNull true (ON DELETE SET NULL)
+  status          : ENUM('draft','published'), defaultValue 'draft'
+  is_featured     : BOOLEAN, defaultValue false
+  published_at    : DATE (TIMESTAMPTZ), allowNull true
+  read_time_minutes: INTEGER, defaultValue 0
+  seo_title       : STRING(160), allowNull true
+  seo_description : STRING(320), allowNull true
+  canonical_url   : STRING(500), allowNull true
+  focus_keyword   : STRING(100), allowNull true
+  structured_data : JSONB, allowNull true
+  og_image_url    : STRING(500), allowNull true
+  og_title        : STRING(160), allowNull true
+  og_description  : STRING(320), allowNull true
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+Hooks:
+  beforeCreate: slugify title if slug not provided
+  beforeCreate: calculate read_time_minutes from content_html
+  beforeUpdate: recalculate read_time_minutes if content_html changed
+  afterCreate: create BlogAnalytics record for this blog
+
+Associations:
+  belongsTo User (as: author, foreignKey: author_id, onDelete: 'RESTRICT')
+  belongsTo Category (foreignKey: category_id, onDelete: 'SET_NULL')
+  belongsToMany Tag through BlogTag (onDelete: 'CASCADE')
+  hasOne BlogAnalytics (onDelete: 'CASCADE')
+  hasMany Image (foreignKey: blog_id, onDelete: 'SET_NULL')
+  hasMany PageViewLog (foreignKey: blog_id, onDelete: 'CASCADE')
+
+
+--------------------------------------------------
+Model: BlogTag
+--------------------------------------------------
+Table: blog_tags
+
+Fields:
+  blog_id         : UUID, FK → blogs, allowNull false (ON DELETE CASCADE)
+  tag_id          : UUID, FK → tags, allowNull false (ON DELETE CASCADE)
+
+Primary Key: [blog_id, tag_id]
+
+
+--------------------------------------------------
+Model: Image
+--------------------------------------------------
+Table: images
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  blog_id         : UUID, FK → blogs, allowNull true (ON DELETE SET NULL)
+  github_path     : STRING(500), allowNull false
+  cdn_url         : STRING(500), allowNull false
+  width           : INTEGER, allowNull false
+  height          : INTEGER, allowNull false
+  file_size_bytes : INTEGER, allowNull false
+  mime_type       : STRING(50), defaultValue 'image/webp'
+  alt_text        : STRING(300), allowNull true
+  uploaded_by     : UUID, FK → users, allowNull false (ON DELETE RESTRICT)
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+Associations:
+  belongsTo Blog (foreignKey: blog_id, onDelete: 'SET_NULL')
+  belongsTo User (as: uploader, foreignKey: uploaded_by, onDelete: 'RESTRICT')
+
+
+--------------------------------------------------
+Model: BlogAnalytics
+--------------------------------------------------
+Table: blog_analytics
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  blog_id         : UUID, FK → blogs, unique true, allowNull false (ON DELETE CASCADE)
+  total_views     : BIGINT, defaultValue 0
+  unique_visitors : BIGINT, defaultValue 0
+  avg_read_time_sec: INTEGER, defaultValue 0
+  bounce_count    : BIGINT, defaultValue 0
+  last_viewed_at  : DATE (TIMESTAMPTZ), allowNull true
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+Associations:
+  belongsTo Blog (foreignKey: blog_id, onDelete: 'CASCADE')
+
+
+--------------------------------------------------
+Model: PageViewLog
+--------------------------------------------------
+Table: page_view_logs
+
+Fields:
+  id              : BIGINT, autoIncrement, PK
+  blog_id         : UUID, FK → blogs, allowNull false (ON DELETE CASCADE)
+  visitor_hash    : STRING(64), allowNull false
+  referrer        : STRING(500), allowNull true
+  read_time_sec   : INTEGER, defaultValue 0
+  is_bounce       : BOOLEAN, defaultValue false
+  viewed_at       : DATE (TIMESTAMPTZ), defaultValue NOW
+
+timestamps: false
+
+Associations:
+  belongsTo Blog (foreignKey: blog_id, onDelete: 'CASCADE')
+
+
+--------------------------------------------------
+Model: SearchLog
+--------------------------------------------------
+Table: search_logs
+
+Fields:
+  id              : BIGINT, autoIncrement, PK
+  query           : STRING(300), allowNull false
+  result_count    : INTEGER, defaultValue 0
+  searched_at     : DATE (TIMESTAMPTZ), defaultValue NOW
+
+timestamps: false
+
+
+--------------------------------------------------
+Model: AdUnit
+--------------------------------------------------
+Table: ad_units
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  name            : STRING(150), allowNull false
+  placement       : ENUM('HOME_TOP', 'HOME_MIDDLE', 'HOME_BOTTOM', 'SEARCH_TOP', 'SEARCH_INLINE', 'SEARCH_BOTTOM', 'BLOG_TOP', 'BLOG_INLINE_1', 'BLOG_INLINE_2', 'BLOG_BOTTOM', 'BLOG_SIDEBAR'), allowNull false
+  ad_script       : TEXT, allowNull false
+  device_target   : ENUM('all','desktop','mobile'), defaultValue 'all'
+  is_active       : BOOLEAN, defaultValue true
+  sort_order      : INTEGER, defaultValue 0
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+
+--------------------------------------------------
+Model: ErrorLog
+--------------------------------------------------
+Table: error_logs
+
+Fields:
+  id              : UUID, PK, defaultValue UUIDV4
+  correlation_id  : STRING(50), allowNull true
+  error_code      : STRING(50), allowNull true
+  error_message   : TEXT, allowNull false
+  stack_trace     : TEXT, allowNull true
+  file_name       : STRING(255), allowNull true
+  function_name   : STRING(255), allowNull true
+  severity        : ENUM('LOW', 'MEDIUM', 'HIGH', 'CRITICAL', 'FATAL'), defaultValue 'MEDIUM'
+  error_type      : ENUM('SERVER_ERROR', 'DATABASE_ERROR', 'RATE_LIMIT_ERROR', 'THIRD_PARTY_ERROR', 'OTHER'), allowNull false
+  request_url     : STRING(500), allowNull true
+  request_method  : STRING(10), allowNull true
+  ip_address      : STRING(45), allowNull true
+  user_id         : UUID, FK → users, allowNull true (ON DELETE SET NULL)
+  created_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+  updated_at      : DATE (TIMESTAMPTZ), allowNull false, defaultValue NOW
+
+Associations:
+  belongsTo User (foreignKey: user_id, onDelete: 'SET_NULL')
+
+
+==================================================
+SECTION 6: API ROUTES SPECIFICATION
+==================================================
+
+Base URL: /api/v1
+
+--------------------------------------------------
+AUTH ROUTES: /api/v1/auth
+--------------------------------------------------
+
+POST   /login
+  Body        : { email, password }
+  Response    : { accessToken, user: { id, name, role } }
+  Action      : Validate credentials, sign JWT access token,
+                generate refresh token, store hashed token in DB,
+                set refreshToken in HTTP-only cookie
+
+POST   /logout
+  Auth        : Authenticated (access token)
+  Response    : { message }
+  Action      : Delete refresh token from DB, clear cookie
+
+POST   /refresh
+  Cookie      : refreshToken
+  Response    : { accessToken }
+  Action      : Validate refresh token from cookie,
+                compare hash, issue new access token
+
+GET    /me
+  Auth        : Authenticated
+  Response    : { id, name, email, role, avatar_url }
+
+
+--------------------------------------------------
+USER ROUTES: /api/v1/users
+--------------------------------------------------
+All routes: Auth required + superadmin role
+
+GET    /
+  Response    : Paginated list of users
+
+POST   /
+  Body        : { name, email, password, role }
+  Action      : Create new editor/admin account
+
+PATCH  /:id
+  Body        : { name, avatar_url, is_active }
+  Action      : Update user profile
+
+PATCH  /:id/password
+  Body        : { current_password, new_password }
+  Action      : Change password with bcrypt validation
+
+DELETE /:id
+  Action      : Soft deactivate (is_active = false)
+
+
+--------------------------------------------------
+CATEGORY ROUTES: /api/v1/categories
+--------------------------------------------------
+
+GET    /                        (Public)
+  Response    : All active categories with blog count
+
+GET    /:slug                   (Public)
+  Response    : Single category details
+
+POST   /                        (Auth: superadmin)
+  Body        : { name, description, meta_title, meta_description }
+
+PATCH  /:id                     (Auth: superadmin)
+  Body        : { name, description, meta_title, meta_description,
+                  is_active, sort_order }
+
+DELETE /:id                     (Auth: superadmin)
+  Action      : Delete category, set category_id NULL on related blogs
+
+
+--------------------------------------------------
+TAG ROUTES: /api/v1/tags
+--------------------------------------------------
+
+GET    /                        (Public)
+  Query       : ?popular=true (sorted by blog count)
+  Response    : List of tags with blog count
+
+GET    /:slug                   (Public)
+
+POST   /                        (Auth: editor+)
+  Body        : { name }
+
+DELETE /:id                     (Auth: superadmin)
+  Action      : Delete tag, remove from blog_tags
+
+
+--------------------------------------------------
+BLOG ROUTES: /api/v1/blogs
+--------------------------------------------------
+
+Admin CRUD:
+
+GET    /                        (Auth: editor+)
+  Query       : ?status=draft|published&page=1&limit=20&search=
+  Response    : Paginated blogs with author, category, tag counts
+
+GET    /:id                     (Auth: editor+)
+  Response    : Full blog with tags, images, analytics, author
+
+POST   /                        (Auth: editor+)
+  Body        : {
+                  title, slug?, excerpt, content_html,
+                  category_id?, tags: string[],
+                  status, is_featured, published_at?,
+                  seo_title, seo_description, canonical_url,
+                  focus_keyword, structured_data,
+                  og_image_url, og_title, og_description
+                }
+  Action      : Sanitize content_html, auto-slug if not provided,
+                calculate read_time_minutes, upsert tags,
+                create blog_tags associations
+
+PATCH  /:id                     (Auth: editor+)
+  Body        : Partial blog fields (same as POST)
+  Action      : Update blog, sync tags, recalculate read_time
+
+DELETE /:id                     (Auth: superadmin)
+  Action      : Delete blog, cascade images metadata (NOT GitHub files)
+
+PATCH  /:id/status              (Auth: editor+)
+  Body        : { status: 'draft'|'published', published_at? }
+
+--------------------------------------------------
+Public Blog Endpoints:
+
+GET    /public/blogs            (Public)
+  Query       : ?page=1&limit=10&featured=true
+  Response    : Published blogs, no sensitive fields
+
+GET    /public/blogs/:slug      (Public)
+  Response    : Full blog for rendering (all SEO fields included)
+  Action      : Increment page view log (async, non-blocking)
+
+GET    /public/search           (Public)
+  Query       : ?q=keyword&page=1&limit=10
+  Action      : Full-text search on title + excerpt + content_html,
+                log search query asynchronously
+
+GET    /public/search/category/:slug    (Public)
+  Query       : ?page=1&limit=10
+
+GET    /public/search/tag/:slug         (Public)
+  Query       : ?page=1&limit=10
+
+
+--------------------------------------------------
+IMAGE ROUTES: /api/v1/images
+--------------------------------------------------
+
+POST   /upload                  (Auth: editor+)
+  Content-Type: multipart/form-data
+  Body        : { file: File, blog_id?: UUID, alt_text?: string }
+  Response    : { success: true, data: { id, cdn_url, width, height, mime_type, alt_text } }
+  Pipeline    : See Section 8
+
+DELETE /:id                     (Auth: editor+)
+  Action      : Delete image record from DB
+                (GitHub file deletion: optional, can be a separate job)
+
+GET    /blog/:blog_id           (Auth: editor+)
+  Response    : List of images uploaded for a blog
+
+
+--------------------------------------------------
+ANALYTICS ROUTES: /api/v1/analytics
+--------------------------------------------------
+All: Auth required (editor+)
+
+GET    /overview
+  Response    : {
+                  total_blogs, total_published, total_views,
+                  total_unique_visitors, top_blogs[5],
+                  trending_tags[10], recent_searches[10]
+                }
+
+GET    /blogs/:id
+  Response    : BlogAnalytics for a specific blog
+
+POST   /track/view              (Public, rate-limited)
+  Body        : { blog_id, read_time_sec, is_bounce }
+  Headers     : User-Agent, X-Forwarded-For (for visitor hash)
+  Action      : Insert into page_view_logs (async)
+
+GET    /search-trends
+  Query       : ?limit=20
+  Response    : Top searched queries with counts
+
+
+--------------------------------------------------
+AD ROUTES: /api/v1/ads
+--------------------------------------------------
+
+GET    /                        (Public)
+  Query       : ?placement=HOME_TOP&device=mobile
+  Response    : Active ad units for placement + device
+
+POST   /                        (Auth: superadmin)
+  Body        : { name, placement, ad_script, device_target, sort_order }
+
+PATCH  /:id                     (Auth: superadmin)
+  Body        : { name, ad_script, device_target, is_active, sort_order }
+
+DELETE /:id                     (Auth: superadmin)
+
+
+--------------------------------------------------
+ERROR LOG ROUTES: /api/v1/admin/error-logs
+--------------------------------------------------
+
+GET    /                        (Auth: superadmin)
+  Query       : ?page=1&limit=20
+  Response    : Paginated list of error logs with associated user context and pagination meta
+
+DELETE /                        (Auth: superadmin)
+  Response    : Count of all cleared error logs from database
+
+POST   /bulk-delete             (Auth: superadmin)
+  Body        : { ids: ["uuid-1", "uuid-2"] }
+  Response    : Count of deleted error logs
+
+
+==================================================
+SECTION 7: AUTHENTICATION ARCHITECTURE
+==================================================
+
+Access Token:
+  Type        : JWT (signed with JWT_ACCESS_SECRET)
+  Payload     : { sub: userId, role, iat, exp }
+  Expiry      : 15 minutes
+  Transport   : Authorization: Bearer <token> header
+
+Refresh Token:
+  Type        : Opaque random string (crypto.randomBytes(64).toString('hex'))
+  Storage     : SHA-256 hash stored in refresh_tokens table
+  Expiry      : 7 days
+  Transport   : HTTP-only, Secure, SameSite=Strict cookie
+
+Token Flow (Login):
+  1. Validate email + password
+  2. Generate accessToken (JWT, 15m)
+  3. Generate raw refreshToken (random 64 bytes)
+  4. Hash refreshToken with SHA-256
+  5. Store hash + expires_at + ip + user_agent in refresh_tokens
+  6. Update user.last_login_at
+  7. Return accessToken in body
+  8. Set refreshToken in HTTP-only cookie
+
+Token Flow (Refresh):
+  1. Read refreshToken cookie
+  2. Hash it with SHA-256
+  3. Find matching row in refresh_tokens
+  4. Validate expiry
+  5. Verify user.is_active
+  6. Issue new accessToken
+  7. Optionally rotate refresh token (recommended)
+
+Token Flow (Logout):
+  1. Read refreshToken cookie
+  2. Hash it
+  3. Delete from refresh_tokens
+  4. Clear cookie
+
+Middleware: authenticate.ts
+  1. Extract Bearer token from Authorization header
+  2. Verify with jwt.verify(token, JWT_ACCESS_SECRET)
+  3. Attach decoded payload to req.user
+  4. Reject with 401 if missing or invalid
+
+Middleware: authorize.ts
+  Usage       : authorize('superadmin') or authorize('editor', 'superadmin')
+  Action      : Check req.user.role against allowed roles
+  Reject      : 403 Forbidden
+
+
+==================================================
+SECTION 8: IMAGE HANDLING PIPELINE
+==================================================
+
+Endpoint: POST /api/v1/images/upload
+Middleware: multer (memoryStorage, no disk writes)
+
+Step-by-step pipeline in image.service.ts:
+
+1. RECEIVE
+   - multer receives multipart/form-data into buffer (memory)
+   - Field: file (required), blog_id (optional), alt_text (optional)
+
+2. AUTHENTICATE
+   - authenticate middleware runs before multer
+   - req.user must be present
+
+3. VALIDATE MIME TYPE
+   - Check file.mimetype against ALLOWED_MIME_TYPES env array
+   - Reject with 415 if not allowed
+
+4. VALIDATE FILE SIZE
+   - Check file.size against MAX_IMAGE_SIZE_BYTES
+   - Reject with 413 if exceeded
+
+5. GENERATE METADATA
+   - slugify blog title or fallback to timestamp
+   - storagePath = posts/{YYYY}/{MM}/{blog-slug}/
+   - Generate a unique timestamp-based filename (e.g. {timestamp}-{random}.webp)
+
+6. PROCESS IMAGE WITH SHARP
+   - Limit max width to 1600px for desktop/mobile responsive optimization (maintaining aspect ratio)
+   - .rotate() → auto-orient from EXIF
+   - .withMetadata(false) → strip all EXIF metadata
+   - Convert to webp with quality 82
+   - .toBuffer() → get processed buffer
+   - .metadata() → capture output width, height, and file size
+
+7. UPLOAD TO GITHUB
+   github.service.ts:
+   - filePath = storagePath + filename
+   - content  = buffer.toString('base64')
+   - PUT https://api.github.com/repos/{owner}/{repo}/contents/{filePath}
+     Headers: Authorization: Bearer GITHUB_TOKEN
+     Body   : { message: 'upload: {filePath}', content, branch }
+   - On conflict (422): GET existing SHA, then PUT with sha field to update
+
+8. GENERATE CDN URL
+   cdn.service.ts:
+   - cdnUrl = JSDELIVR_BASE + '/' + filePath
+   Example:
+   https://cdn.jsdelivr.net/gh/owner/repo@main/posts/2026/05/blog-slug/1716382900-xyz.webp
+
+9. SAVE TO DATABASE
+   Insert Image record:
+   - blog_id, github_path, cdn_url,
+     width, height, file_size_bytes, mime_type, alt_text, uploaded_by
+
+10. RETURN RESPONSE
+    {
+      success: true,
+      data: {
+        id,
+        cdn_url,
+        width,
+        height,
+        alt_text
+      }
+    }
+
+Error handling at each step:
+  - Multer error → 400
+  - MIME/size error → 413/415
+  - Sharp error → 422 with message
+  - GitHub API error → 502 Bad Gateway, log full error
+  - DB error → 500, optionally clean up GitHub files
+
+
+==================================================
+SECTION 9: CONTENT SANITIZATION
+==================================================
+
+Library: sanitize-html (or DOMPurify on server via jsdom)
+
+Applied in: sanitizeHtml middleware + blog.service.ts before DB write
+
+Allowed HTML tags:
+  h1, h2, h3, h4, h5, h6,
+  p, br, hr,
+  strong, em, u, s, blockquote, code, pre,
+  ul, ol, li,
+  a, img,
+  table, thead, tbody, tr, th, td,
+  figure, figcaption,
+  div, span
+
+Allowed attributes per tag:
+  a     : href, title, target, rel
+  img   : src, alt, width, height, loading
+  td/th : colspan, rowspan
+  div   : class
+  span  : class
+  *     : id, class (whitelist only safe classes)
+
+Disallowed:
+  script, style, iframe, object, embed, form,
+  input, button, link, meta, base
+
+Force on <a> tags:
+  rel="noopener noreferrer"
+  target="_blank" (optional, admin configurable)
+
+
+==================================================
+SECTION 10: ANALYTICS PIPELINE
+==================================================
+
+Tracking Endpoint: POST /api/v1/analytics/track/view
+
+Rate limiting:
+  - 1 request per IP per blog per 5 minutes (Redis or in-memory LRU)
+  - If no Redis: use IP+blog_id key in node-cache with 5m TTL
+
+Visitor fingerprinting:
+  - fingerprint = SHA-256( IP + User-Agent + blog_id + date )
+  - Stored as visitor_hash (no PII stored directly)
+
+Async write strategy:
+  - Controller validates input, returns 200 immediately
+  - Fires setImmediate(() => insertPageViewLog(...))
+  - Never await the DB write in the request cycle
+
+Aggregation job: jobs/analyticsAggregator.ts
+  - Cron schedule: every 30 minutes (node-cron)
+  - For each blog:
+      SELECT
+        COUNT(*)            AS total_views,
+        COUNT(DISTINCT visitor_hash) AS unique_visitors,
+        AVG(read_time_sec)  AS avg_read_time,
+        SUM(CASE WHEN is_bounce THEN 1 ELSE 0 END) AS bounce_count,
+        MAX(viewed_at)      AS last_viewed_at
+      FROM page_view_logs
+      WHERE blog_id = ?
+  - Upsert into blog_analytics
+  - Optionally: delete page_view_logs older than 30 days
+
+Search logging:
+  - POST /public/search → after returning results
+  - Fire setImmediate(() => insertSearchLog(query, resultCount))
+
+
+==================================================
+SECTION 11: SLUG GENERATION LOGIC
+==================================================
+
+utils/slugify.ts:
+  1. Lowercase the input string
+  2. Replace non-alphanumeric characters with hyphens
+  3. Remove consecutive hyphens
+  4. Trim leading/trailing hyphens
+  5. Truncate to 280 characters
+
+Uniqueness guarantee:
+  In blog.service.ts (before insert):
+  1. Generate base slug from title
+  2. Check DB for existing slug
+  3. If exists: append -2, -3, ... until unique
+  4. Retry up to 10 iterations, then append timestamp suffix
+
+
+==================================================
+SECTION 12: ERROR HANDLING ARCHITECTURE
+==================================================
+
+Custom error classes in types/errors.ts:
+
+  class AppError extends Error:
+    statusCode   : number
+    errorCode    : string
+    isOperational: boolean
+    errors       : unknown
+
+    Constructor: (statusCode, errorCode, message, errors = null, isOperational = true)
+
+  class ValidationError extends AppError (400, 'VALIDATION_ERROR')
+  class UnauthorizedError extends AppError (401, 'UNAUTHORIZED')
+  class ForbiddenError extends AppError (403, 'FORBIDDEN')
+  class NotFoundError extends AppError (404, 'NOT_FOUND')
+  class ConflictError extends AppError (409, 'CONFLICT')
+  class UpstreamError extends AppError (502, 'UPSTREAM_ERROR') -- GitHub API failures
+
+Global error handler middleware (errorHandler.ts):
+  - If AppError: respond with statusCode + message
+  - If Sequelize.ValidationError: extract messages → 400
+  - If Sequelize.UniqueConstraintError: → 409
+  - If JsonWebTokenError: → 401
+  - If MulterError: → 400 or 413
+  - Unknown errors: log full stack → respond 500
+  - Persist to DB (ErrorLog table):
+    - All crucial server errors (500), database errors, rate limit blocks, and third-party failures.
+  - Critical Alerting:
+    - If severity is HIGH, CRITICAL, or FATAL, asynchronously trigger email notification to the administrator via nodemailer (email.service.ts).
+
+Standard API response wrapper (utils/apiResponse.ts):
+
+  Class: ApiResponse
+
+  static success(res: Response, statusCode: number, message: string, data: unknown = null, meta: unknown = null): Response
+    → Sends standardized success payload:
+      {
+        success: true,
+        status_code: statusCode,
+        message: string,
+        data: any,
+        meta: any,
+        timestamp: string (ISO)
+      }
+
+  static error(res: Response, statusCode: number, message: string, errors: unknown = null, fileName: string = 'N/A', functionName: string = 'N/A', correlationId: string = 'N/A'): Response
+    - Logs errors (statusCode >= 400) to logger.error, including correlation ID, file, and function names.
+    → Sends standardized error payload:
+      {
+        success: false,
+        status_code: statusCode,
+        message: string,
+        correlation_id: string,
+        errors: any,
+        debug_info?: { file: string, function: string }, (only in non-production environments)
+        timestamp: string (ISO)
+      }
+
+  static paginated(res: Response, statusCode: number, message: string, data: unknown[], pagination: { total: number, page: number, limit: number, total_pages: number }): Response
+    → Sends standardized paginated payload:
+      {
+        success: true,
+        status_code: statusCode,
+        message: string,
+        data: Array,
+        pagination: {
+          total: number,
+          page: number,
+          limit: number,
+          total_pages: number
+        },
+        timestamp: string (ISO)
+      }
+
+  static handleControllerError(res: Response, req: Request, error: unknown, fileName: string, functionName: string): Response
+    - Centralized controller catch block utility.
+    - Resolves statusCode/message/details from AppError or defaults to 500 (Internal Server Error).
+    - Dispatches to ApiResponse.error using Request correlation ID.
+
+
+==================================================
+SECTION 13: RATE LIMITING STRATEGY
+==================================================
+
+Library: express-rate-limit
+
+Config 1: General API
+  windowMs  : 15 minutes
+  max       : 100 requests
+  Apply to  : All /api/v1/* routes
+
+Config 2: Auth routes
+  windowMs  : 15 minutes
+  max       : 10 requests
+  Apply to  : /api/v1/auth/login, /api/v1/auth/refresh
+
+Config 3: Image upload
+  windowMs  : 60 minutes
+  max       : 30 uploads
+  Apply to  : POST /api/v1/images/upload
+
+Config 4: Public search
+  windowMs  : 1 minute
+  max       : 30 requests
+  Apply to  : GET /public/search
+
+
+==================================================
+SECTION 14: LOGGING STRATEGY
+==================================================
+
+Library: Winston
+
+Transports:
+  Development : Console (colorized, verbose)
+  Production  : File (combined.log) + File (error.log) + Console (errors only)
+
+Log levels: error, warn, info, http, debug
+
+HTTP request logger (requestLogger.ts):
+  - Log: method, url, status, response time, ip
+  - Using morgan with Winston stream in production
+
+What to log:
+  - All requests (info)
+  - Auth events: login, logout, token refresh (info)
+  - Image upload steps (info per step)
+  - GitHub API calls + responses (info/error)
+  - Cron job start/end + row counts (info)
+  - All AppError instances (warn) with structured metadata: correlation_id, error_code, file_name, and function_name
+  - All unexpected errors (error + stack) with request context and correlation ID
+  - Never log: passwords, tokens, raw cookie values
+
+
+==================================================
+SECTION 15: SECURITY CHECKLIST
+==================================================
+
+Transport:
+  [x] HTTPS enforced in production
+  [x] HSTS header via helmet
+  [x] Secure, HttpOnly, SameSite cookies
+
+Input:
+  [x] Joi validation on all request bodies
+  [x] sanitize-html on content_html before DB write
+  [x] multer limits on file size and type
+
+Headers:
+  [x] helmet() → sets Content-Security-Policy, X-Frame-Options, etc.
+  [x] CORS restricted to FRONTEND_URL
+
+Auth:
+  [x] JWT short-lived access tokens
+  [x] Refresh token rotation on use
+  [x] bcrypt with saltRounds=12
+  [x] SHA-256 hashing of refresh tokens in DB
+  [x] Role-based access on all admin routes
+
+Database:
+  [x] Parameterized queries via Sequelize (no raw SQL with user input)
+  [x] No PII stored in analytics (hashed visitor fingerprint only)
+
+GitHub Token:
+  [x] Fine-grained token with Contents write permission only
+  [x] GITHUB_TOKEN stored in env, never in code or logs
+
+
+==================================================
+SECTION 16: DEPLOYMENT CONFIGURATION
+==================================================
+
+Production startup:
+  1. npm run build      → tsc compile to /dist
+  2. Run migrations     → npx sequelize-cli db:migrate
+  3. Run seeders (once) → npx sequelize-cli db:seed:all
+  4. npm start          → node dist/server.js
+
+Process manager: PM2
+  pm2 start dist/server.js --name blog-api -i max
+
+Health check endpoint:
+  GET /api/health
+  Response: { status: 'ok', uptime, timestamp }
+
+Graceful shutdown:
+  - Listen for SIGTERM/SIGINT
+  - Close Sequelize connection pool
+  - Close HTTP server
+  - Exit cleanly
+
+
+==================================================
+SECTION 17: DEPENDENCY LIST
+==================================================
+
+Production:
+  express
+  sequelize
+  sequelize-typescript
+  pg
+  pg-hstore
+  reflect-metadata
+  jsonwebtoken
+  bcryptjs
+  cookie-parser
+  cors
+  helmet
+  multer
+  sharp
+  sanitize-html
+  joi
+  winston
+  morgan
+  node-cron
+  node-cache
+  axios
+  dotenv
+  uuid
+  nodemailer
+
+Development:
+  typescript
+  ts-node
+  ts-node-dev
+  eslint
+  prettier
+  eslint-config-prettier
+  eslint-plugin-prettier
+  @typescript-eslint/parser
+  @typescript-eslint/eslint-plugin
+  @types/express
+  @types/node
+  @types/jsonwebtoken
+  @types/bcryptjs
+  @types/cookie-parser
+  @types/cors
+  @types/multer
+  @types/sanitize-html
+  @types/morgan
+  @types/nodemailer
+  sequelize-cli
+
+
+==================================================
+SECTION 18: IMPLEMENTATION ROADMAP
+==================================================
+
+PHASE 1 → PROJECT FOUNDATION
+  Duration   : Days 1–2
+  Goal       : Working Express + TypeScript server with DB connection
+
+PHASE 2 → DATABASE LAYER
+  Duration   : Days 3–5
+  Goal       : All models, migrations, associations, seeders ready
+
+PHASE 3 → AUTHENTICATION SYSTEM
+  Duration   : Days 6–8
+  Goal       : Full auth flow with JWT + refresh token + role middleware
+
+PHASE 4 → CORE BLOG API
+  Duration   : Days 9–13
+  Goal       : CRUD for blogs, categories, tags with sanitization + slug logic
+
+PHASE 5 → IMAGE PIPELINE
+  Duration   : Days 14–17
+  Goal       : Full image upload → Sharp → GitHub → CDN → DB pipeline
+
+PHASE 6 → PUBLIC API LAYER
+  Duration   : Days 18–20
+  Goal       : All public-facing endpoints (blog listing, search, slug lookup)
+
+PHASE 7 → ANALYTICS SYSTEM
+  Duration   : Days 21–23
+  Goal       : Tracking endpoint, aggregation cron, overview dashboard API
+
+PHASE 8 → AD MANAGEMENT API
+  Duration   : Day 24
+  Goal       : Full ad unit CRUD + public placement query
+
+PHASE 9 → SECURITY HARDENING
+  Duration   : Days 25–26
+  Goal       : helmet, CORS, rate limiting, input validation on all routes
+
+PHASE 10 → TESTING AND PRODUCTION PREP
+  Duration   : Days 27–30
+  Goal       : Manual API tests, error handling review, PM2, health check,
+               env validation, deployment dry run
+
+
+==================================================
+SECTION 19: SEQUENTIAL TODO CHECKLIST
+==================================================
+
+--------------------------------------------------
+PHASE 1: PROJECT FOUNDATION
+--------------------------------------------------
+
+[x] 1.01  Initialize Node.js project: npm init -y
+[x] 1.02  Install TypeScript and configure tsconfig.json
+          - target: ES2020
+          - module: commonjs
+          - outDir: ./dist
+          - rootDir: ./src
+          - strict: true
+          - experimentalDecorators: true
+          - emitDecoratorMetadata: true
+[x] 1.03  Install production dependencies (see Section 17)
+[x] 1.04  Install development dependencies
+          - Includes nodemailer, @types/nodemailer, eslint, prettier, and required plugins (see Section 17)
+[x] 1.05  Create folder structure as defined in Section 2
+[x] 1.06  Create .env and .env.example with all variables from Section 3
+[x] 1.07  Implement src/config/env.config.ts
+          - Load dotenv
+          - Validate all required env vars at startup
+          - Throw hard error if any missing
+[x] 1.08  Implement src/config/constants.ts
+          - SALT_ROUNDS = 12
+          - ALLOWED_MIME_TYPES parsed from env
+          - MAX_IMAGE_SIZE_BYTES parsed from env
+[x] 1.09  Implement src/utils/logger.ts using Winston
+[x] 1.10  Implement src/utils/apiResponse.ts (success, error, paginated)
+[x] 1.11  Implement src/app.ts
+          - Initialize Express
+          - Apply helmet()
+          - Apply cors() with FRONTEND_URL whitelist
+          - Apply express.json() and express.urlencoded()
+          - Apply cookie-parser
+          - Apply requestLogger middleware
+          - Mount root router
+          - Mount global errorHandler middleware
+[x] 1.12  Implement src/server.ts
+          - Import app
+          - Authenticate DB connection
+          - Start HTTP server on PORT
+          - Implement graceful shutdown on SIGTERM/SIGINT
+[x] 1.13b Setup ESLint and Prettier configurations:
+          - Define rules in eslint.config.js
+          - Specify ignores in ignores array
+          - Define formatting in .prettierrc
+          - Specify ignores in .prettierignore
+[x] 1.14  Add npm scripts: dev, build, start, migrate, seed, lint, format
+[x] 1.15  Verify server starts and responds on GET /api/health
+
+--------------------------------------------------
+PHASE 2: DATABASE LAYER
+--------------------------------------------------
+
+[x] 2.01  Configure src/config/database.ts (Sequelize instance)
+          - Pool settings
+          - Dialect: postgres
+          - Use env vars
+[x] 2.02  Configure .sequelizerc for CLI paths
+[ ] 2.03  Write migration 001: create users table
+[ ] 2.04  Write migration 002: create refresh_tokens table
+[ ] 2.05  Write migration 003: create categories table
+[ ] 2.06  Write migration 004: create tags table
+[ ] 2.07  Write migration 005: create blogs table (all fields including JSONB)
+[ ] 2.08  Write migration 006: create blog_tags join table
+[ ] 2.09  Write migration 007: create images table
+[ ] 2.10  Write migration 008: create blog_analytics table
+[ ] 2.11  Write migration 009: create page_view_logs table
+[ ] 2.12  Write migration 010: create search_logs table
+[ ] 2.13  Write migration 011: create ad_units table with ENUM placement
+[ ] 2.13b Write migration 012: create error_logs table
+[ ] 2.14  Run all migrations: npx sequelize-cli db:migrate
+          - Verify all tables created in PostgreSQL including error_logs
+[x] 2.15  Implement model User.ts with decorators, hooks, instance methods
+[x] 2.16  Implement model RefreshToken.ts
+[x] 2.17  Implement model Category.ts with slug hook
+[x] 2.18  Implement model Tag.ts with slug hook
+[x] 2.19  Implement model Blog.ts with all hooks (slug, readTime, analytics create)
+[x] 2.20  Implement model BlogTag.ts
+[x] 2.21  Implement model Image.ts
+[x] 2.22  Implement model BlogAnalytics.ts
+[x] 2.23  Implement model PageViewLog.ts (timestamps: false)
+[x] 2.24  Implement model SearchLog.ts (timestamps: false)
+[x] 2.25  Implement model AdUnit.ts
+[x] 2.25b Implement model ErrorLog.ts
+[x] 2.26  Implement src/models/index.ts
+          - Import all models
+          - Define all associations (see Section 5)
+          - Export sequelize instance
+[x] 2.27  Write seeder 001: superadmin user (use bcrypt to hash password)
+[x] 2.28  Write seeder 002: default categories (5-8 starter categories)
+[x] 2.29  Run seeders: npx sequelize-cli db:seed:all
+[x] 2.30  Verify all associations work via a quick test query
+
+--------------------------------------------------
+PHASE 3: AUTHENTICATION SYSTEM
+--------------------------------------------------
+
+[x] 3.01  Implement utils/slugify.ts
+[x] 3.02  Implement utils/readTime.ts
+          - Strip HTML tags from content_html
+          - Count words
+          - Divide by 200 (average WPM), round up
+[x] 3.03  Implement utils/paginate.ts
+          - Accept page, limit
+          - Return Sequelize offset, limit
+          - Return pagination metadata for response
+[x] 3.04  Implement auth.validator.ts (Joi schemas)
+          - loginSchema: { email, password }
+[x] 3.05  Implement auth.service.ts
+          - login(email, password, ip, userAgent)
+              → find user by email
+              → validate password with bcrypt
+              → check is_active
+              → sign accessToken (JWT, 15m)
+              → generate raw refreshToken (crypto.randomBytes)
+              → SHA-256 hash the raw token
+              → insert into refresh_tokens with expires_at
+              → update user.last_login_at
+              → return { accessToken, rawRefreshToken, user }
+          - refresh(rawToken)
+              → SHA-256 hash input
+              → find matching DB row
+              → validate expires_at
+              → verify user.is_active
+              → sign new accessToken
+              → rotate refresh token (delete old, insert new)
+              → return { accessToken, newRawRefreshToken }
+          - logout(rawToken)
+              → SHA-256 hash
+              → delete DB row
+[x] 3.06  Implement auth.controller.ts
+          - login: call service, set cookie, return accessToken
+          - logout: call service, clear cookie
+          - refresh: read cookie, call service, set new cookie, return accessToken
+          - me: return req.user from DB lookup
+[x] 3.07  Implement middleware/authenticate.ts
+          - Extract token from Authorization header
+          - jwt.verify with JWT_ACCESS_SECRET
+          - Attach decoded payload to req.user
+          - Throw UnauthorizedError if invalid
+[x] 3.08  Implement middleware/authorize.ts
+          - Accept ...roles: string[]
+          - Check req.user.role is in allowed roles
+          - Throw ForbiddenError if not
+[x] 3.09  Implement middleware/validate.middleware.ts
+          - Accept Joi schema
+          - Parse req.body, req.params, or req.query
+          - Return ValidationError with field messages if fails
+[x] 3.10  Implement middleware/errorHandler.ts (see Section 12)
+          - Log server, DB, and rate limit errors to DB
+          - Trigger critical email alerts for HIGH/CRITICAL/FATAL severity
+[x] 3.10b Implement src/services/email.service.ts using Nodemailer
+          - Configured with SMTP and supports sending HTML critical alert messages
+[x] 3.11  Implement auth.routes.ts and mount at /api/v1/auth
+[x] 3.12  Implement src/types/express.d.ts to augment req.user type
+[x] 3.13  Test login, token refresh, and logout via API client (Postman/Bruno)
+[x] 3.14  Test authenticate middleware rejects invalid/expired tokens
+[x] 3.15  Test authorize middleware rejects wrong role
+
+--------------------------------------------------
+PHASE 4: CORE BLOG API
+--------------------------------------------------
+
+[x] 4.01  Implement category.validator.ts
+[x] 4.02  Implement category.service.ts
+          - getAll(includeInactive?)
+          - getBySlug(slug)
+          - create(data)
+          - update(id, data)
+          - delete(id)
+[x] 4.03  Implement category.controller.ts
+[x] 4.04  Implement category.routes.ts and mount
+[x] 4.05  Test category CRUD endpoints
+
+[x] 4.06  Implement tag.validator.ts
+[x] 4.07  Implement tag.service.ts
+          - getAll(popular?)
+          - getBySlug(slug)
+          - create(data)
+          - update(id, data)
+          - findOrCreate(name) -- used in blog creation
+          - delete(id)
+[x] 4.08  Implement tag.controller.ts
+[x] 4.09  Implement tag.routes.ts and mount
+[x] 4.10  Test tag endpoints
+
+[x] 4.11  Implement middleware/sanitizeHtml.ts
+          - Wrap sanitize-html with allowlist from Section 9
+          - Export as middleware and as direct sanitize(html) utility
+[x] 4.12  Implement blog.validator.ts
+          - createBlogSchema, updateBlogSchema, statusUpdateSchema
+[x] 4.13  Implement blog.service.ts
+          - getAll(filters, pagination) → admin listing
+          - getById(id) → full blog with associations
+          - create(data, authorId)
+              → sanitize content_html
+              → auto-generate slug if missing
+              → ensure slug uniqueness
+              → calculate read_time_minutes
+              → create Blog record
+              → findOrCreate each tag
+              → set blog.setTags(tagInstances)
+          - update(id, data)
+              → sanitize content_html if updated
+              → update slug if title changed and slug not manually set
+              → ensure slug uniqueness
+              → recalculate read_time_minutes
+              → sync tags: blog.setTags(newTagInstances)
+          - delete(id)
+          - updateStatus(id, status, publishedAt)
+[x] 4.14  Implement blog.controller.ts
+[x] 4.15  Implement blog.routes.ts (admin routes) and mount
+[x] 4.16  Test blog CRUD: create, list, get, update, delete, status change
+[x] 4.17  Test slug auto-generation and uniqueness logic
+[x] 4.18  Test HTML sanitization (inject non allowed tags → verify removed)
+[x] 4.19  Test tag sync on blog update
+
+--------------------------------------------------
+PHASE 5: IMAGE PIPELINE
+--------------------------------------------------
+
+[x] 5.01  Implement utils/generateFilename.ts
+          - Return unique: {timestamp}-{random}.webp
+[x] 5.02  Implement utils/buildCdnUrl.ts
+          - Accept github_path
+          - Return: JSDELIVR_BASE + '/' + github_path
+[x] 5.03  Implement github.service.ts
+          - uploadFile(filePath, base64Content, commitMessage)
+              → GET file first to check if exists (get SHA)
+              → PUT to GitHub Contents API with optional sha
+              → Return { download_url }
+          - deleteFile(filePath, sha, commitMessage) -- optional
+          - Handle 422 conflict by fetching SHA and retrying
+          - Wrap axios calls with try/catch → throw UpstreamError
+[x] 5.04  Implement cdn.service.ts
+          - generateUrl(githubPath): string
+          - Uses buildCdnUrl utility
+[x] 5.05  Implement image.service.ts
+          - processAndUpload(file, blogId, altText, uploaderId)
+              → Validate MIME type
+              → Validate file size
+              → Determine storagePath from blogId or timestamp
+              → Sharp process (resize max 1600px, rotate, strip metadata, toWebP)
+              → Get output metadata (width, height, size)
+              → Convert buffer to base64
+              → Upload via github.service.ts
+              → Generate CDN URL via cdn.service.ts
+              → Prepare and insert Image DB record
+              → Return single image data object
+[x] 5.06  Implement image.validator.ts
+          - Validate blog_id (UUID format if present)
+          - Validate alt_text length
+[x] 5.07  Implement image.controller.ts
+          - upload: multer middleware → image.service.processAndUpload
+          - getByBlog: query images by blog_id
+          - delete: remove DB record
+[x] 5.08  Configure multer in image.controller.ts or middleware
+          - storage: memoryStorage()
+          - limits: { fileSize: MAX_IMAGE_SIZE_BYTES }
+          - fileFilter: check mimetype
+[x] 5.09  Implement image.routes.ts and mount
+[x] 5.10  Test upload with valid JPEG → verify image created in DB + CDN URL
+[x] 5.11  Test upload with invalid MIME → verify 415 rejection
+[x] 5.12  Test upload with oversized file → verify 413 rejection
+[x] 5.13  Verify CDN URLs are accessible in browser
+
+--------------------------------------------------
+PHASE 6: PUBLIC API LAYER
+--------------------------------------------------
+
+[x] 6.01  Implement public.service.ts (or reuse blog.service with filters)
+          - getPublishedBlogs(page, limit, featuredOnly?)
+              → status = 'published', include author + category + tags
+              → exclude: content_html, admin-only fields
+          - getPublishedBlogBySlug(slug)
+              → full blog for frontend render
+              → include all SEO fields, images, author, category, tags
+          - searchBlogs(query, page, limit)
+              → Sequelize full-text search on title + excerpt
+              → Log query asynchronously via SearchLog
+          - getBlogsByCategory(categorySlug, page, limit)
+          - getBlogsByTag(tagSlug, page, limit)
+[x] 6.02  Implement public.controller.ts
+[x] 6.03  Implement public.routes.ts (no auth middleware)
+          - GET /public/blogs
+          - GET /public/blogs/:slug
+          - GET /public/search
+          - GET /public/search/category/:slug
+          - GET /public/search/tag/:slug
+[x] 6.04  Mount public routes at /api/v1
+[x] 6.05  Apply per-route rate limiting to public search endpoints
+[x] 6.06  Test /public/blogs returns only published blogs
+[x] 6.07  Test /public/blogs/:slug returns full SEO fields
+[x] 6.08  Test /public/search with query param
+[x] 6.09  Test category and tag search routes
+[x] 6.10  Verify draft blogs do NOT appear in any public endpoint
+
+--------------------------------------------------
+PHASE 7: ANALYTICS SYSTEM
+--------------------------------------------------
+
+[x] 7.01  Implement utils/hashFingerprint.ts
+          - Accept ip + userAgent + blogId + date (YYYY-MM-DD)
+          - Return SHA-256 hex string
+          - Use Node.js crypto module
+[x] 7.02  Implement analytics.service.ts
+          - trackView(blogId, ip, userAgent, readTimeSec, isBounce)
+              → Generate visitor_hash
+              → setImmediate → insert PageViewLog
+          - getOverview()
+              → total blogs, published count
+              → total views (sum from blog_analytics)
+              → top 5 blogs by total_views
+              → trending 10 tags (join blog_tags + analytics)
+              → recent 10 search queries
+          - getBlogAnalytics(blogId)
+          - getSearchTrends(limit)
+          - aggregateBlogAnalytics() → cron job logic
+              → For all blogs with page_view_logs
+              → Compute stats
+              → Upsert blog_analytics
+[x] 7.03  Implement jobs/analyticsAggregator.ts
+          - Use node-cron: schedule every 30 minutes
+          - Call analytics.service.aggregateBlogAnalytics()
+          - Log start, end, number of blogs updated
+[x] 7.04  Register cron job in server.ts after DB connection
+[x] 7.05  Implement analytics.controller.ts
+          - trackView: validate body, call service, return 200 immediately
+          - getOverview: return dashboard data
+          - getBlogStats: return single blog analytics
+          - getSearchTrends: return top queries
+[x] 7.06  Implement analytics.routes.ts and mount
+          - POST /track/view → public + rate limited
+          - GET /overview → auth required
+          - GET /blogs/:id → auth required
+          - GET /search-trends → auth required
+[x] 7.07  Test tracking endpoint: send 3 requests, check page_view_logs
+[x] 7.08  Manually trigger aggregation, check blog_analytics updated
+[x] 7.09  Test overview endpoint returns correct counts
+
+--------------------------------------------------
+PHASE 8: AD MANAGEMENT API
+--------------------------------------------------
+
+[x] 8.01  Implement ad.validator.ts
+          - createAdSchema: { name, placement, ad_script, device_target, sort_order }
+          - updateAdSchema: partial of create
+[x] 8.02  Implement ad.service.ts
+          - getForPlacement(placement, device) → public
+          - getAll() → admin
+          - create(data)
+          - update(id, data)
+          - delete(id)
+[x] 8.03  Implement ad.controller.ts
+[x] 8.04  Implement ad.routes.ts and mount at /api/v1/ads
+          - GET /     → public (with query params)
+          - POST /    → superadmin
+          - PATCH /:id → superadmin
+          - DELETE /:id → superadmin
+[x] 8.05  Test: create ad, query by placement + device filter
+[x] 8.06  Test: inactive ads do NOT appear in public GET
+
+--------------------------------------------------
+PHASE 9: SECURITY HARDENING
+--------------------------------------------------
+
+[x] 9.01  Confirm helmet() is applied globally in app.ts
+[x] 9.02  Configure CORS: allow only FRONTEND_URL, credentials: true
+[x] 9.03  Implement rateLimiter.ts with all 5 configs from Section 13
+[x] 9.04  Apply each rate limiter to appropriate routes
+[x] 9.05  Review all admin routes: confirm authenticate + authorize applied
+[x] 9.06  Review all public routes: confirm no auth middleware leaks
+[x] 9.07  Confirm sanitize-html runs before every DB write of content_html
+[x] 9.08  Verify cookies are set with: httpOnly, secure (prod), sameSite: strict
+[x] 9.09  Ensure GITHUB_TOKEN is never logged or returned in any response
+[x] 9.10  Ensure password_hash is excluded from all user query responses
+          - Use Sequelize attributes: { exclude: ['password_hash'] }
+[x] 9.11  Add input validation (Joi) to every POST and PATCH route
+[x] 9.12  Add UUID format validation on all /:id and /:blog_id params
+[x] 9.13  Test injection attempt in content_html → verify sanitized output
+[x] 9.14  Test unauthorized access to admin routes → verify 401/403
+
+--------------------------------------------------
+PHASE 10: TESTING AND PRODUCTION PREP
+--------------------------------------------------
+
+[x] 10.01  Add GET /api/health endpoint
+           Response: { status: 'ok', uptime: process.uptime(), timestamp }
+[x] 10.02  Review all controllers: confirm no unhandled promise rejections
+           - All async controllers wrapped in try/catch or asyncHandler utility
+[x] 10.04  Review errorHandler catches all error types (see Section 12)
+[ ] 10.05  Manually test all endpoints with Postman/Bruno collection
+           - Auth: login, refresh, logout, me
+           - Blogs: CRUD, status, slug uniqueness
+           - Categories: CRUD
+           - Tags: CRUD + findOrCreate in blog flow
+           - Images: upload single optimized image, validate CDN URL
+           - Public: blog list, slug lookup, search, category, tag
+           - Analytics: track, overview, trends
+           - Ads: CRUD + placement query
+[ ] 10.06  Verify pagination works on all list endpoints
+[x] 10.07  Verify read_time_minutes calculated correctly on blog create/update
+[x] 10.08  Verify BlogAnalytics record auto-created on blog insert (afterCreate hook)
+[x] 10.09  Build TypeScript: npm run build → confirm no type errors
+[x] 10.10  Test compiled dist/ runs correctly: npm start
+[ ] 10.11  Run migrations on staging DB
+[ ] 10.12  Run seeders on staging DB → verify superadmin login works
+[ ] 10.13  Configure PM2 ecosystem file
+           - name: blog-api
+           - script: dist/server.js
+           - instances: max (cluster mode)
+           - env_production block with all env vars
+[ ] 10.14  Configure environment variable injection on deployment platform
+[ ] 10.15  Deploy to VPS/Railway/Render
+[ ] 10.16  Smoke test all endpoints against production URL
+[ ] 10.17  Verify image CDN URLs are publicly accessible after production upload
+[ ] 10.18  Confirm cron job runs in production (check logs at :00 and :30)
+[ ] 10.19  Set log rotation policy for production log files
+[ ] 10.20  Document base URL, auth headers, and cookie requirements
+           for frontend team integration handoff
+
+
+==================================================
+END OF BACKEND TECHNICAL DOCUMENTATION
+==================================================

@@ -1,0 +1,1318 @@
+### Variables
+@baseUrl = http://localhost:5000/api/v1
+@rootUrl = http://localhost:5000
+@adminEmail = admin@alltectamil.com
+@adminPassword = Admin@123
+@token = {{login.response.body.data.accessToken}}
+
+
+### ==========================================
+### PUBLIC ROUTES
+### ==========================================
+
+### 1. Root Welcome Route
+GET {{rootUrl}}/
+# {
+#   "success": true,
+#   "message": "Welcome to AllTechTamil Blogger API",
+#   "version": "1.0.0",
+#   "documentation": "/api/health"
+# }
+
+### 2. Get Public Categories
+GET {{baseUrl}}/public/categories
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Categories retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#       "name": "Technology",
+#       "slug": "technology",
+#       "description": "Latest technology updates, gadgets review, and tech news.",
+#       "metaTitle": "Technology News & Updates | AllTechTamil",
+#       "metaDescription": "Stay ahead with the latest technology updates, gadget reviews, and trending tech news in Tamil.",
+#       "isActive": true,
+#       "sortOrder": 1,
+#       "createdAt": "2026-05-23T11:14:48.738Z",
+#       "updatedAt": "2026-05-23T11:14:48.738Z"
+#     }
+#   ],
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:25:07.376Z"
+# }
+### 3. Get Public Tags
+GET {{baseUrl}}/public/tags
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Tags retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "7e732fd9-fdae-4463-9f7b-ed2e8576e973",
+#       "name": "Angular Framework",
+#       "slug": "angularjs",
+#       "createdAt": "2026-05-23T13:39:32.522Z"
+#     },
+#     {
+#       "id": "53e0cd28-a659-4fa2-a41b-c9e25b661ae2",
+#       "name": "cybersecurity",
+#       "slug": "cybersecurity",
+#       "createdAt": "2026-05-23T13:46:10.624Z"
+#     },
+#     {
+#       "id": "7ae4d7e8-eb9d-430b-bd21-677fb3efa760",
+#       "name": "frontend",
+#       "slug": "frontend",
+#       "createdAt": "2026-05-23T13:46:11.509Z"
+#     }
+#   ],
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:25:48.388Z"
+# }
+### 4. Search Blogs
+GET {{baseUrl}}/public/search?q=public
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Search results retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "9dd47567-a479-4d48-b256-8fea92913307",
+#       "title": "Public API Test Blog",
+#       "slug": "public-api-test-blog",
+#       "excerpt": null,
+#       "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "categoryId": null,
+#       "status": "published",
+#       "isFeatured": false,
+#       "publishedAt": "2026-05-23T14:14:20.812Z",
+#       "readTimeMinutes": 1,
+#       "createdAt": "2026-05-23T14:14:19.880Z",
+#       "updatedAt": "2026-05-23T14:14:20.812Z",
+#       "author": {
+#         "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#         "name": "Super Admin",
+#         "avatarUrl": null
+#       },
+#       "Category": null,
+#       "Tags": [
+#         {
+#           "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#           "name": "test",
+#           "slug": "test"
+#         }
+#       ],
+#       "Images": [],
+#       "BlogAnalytic": {
+#         "totalViews": "3",
+#         "avgReadTimeSec": 60
+#       }
+#     }
+#   ],
+#   "meta": {
+#     "currentPage": 1,
+#     "perPage": 10,
+#     "totalCount": 1,
+#     "totalPages": 1,
+#     "hasPrevPage": false,
+#     "hasNextPage": false
+#   },
+#   "timestamp": "2026-05-23T16:28:03.032Z"
+# }
+
+### 5. Track Blog View (Analytics)
+POST {{baseUrl}}/public/analytics/track/view
+Content-Type: application/json
+
+{
+  "blogId": "e1f1a547-5cc0-4f5a-8b1b-9d41b65b1d42",
+  "readTimeSec": 30,
+  "isBounce": false
+}
+
+# RESPONSE:
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "View tracked asynchronously.",
+#   "data": null,
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:28:28.530Z"
+# }
+
+### 6. Get All Published Blogs (Feed with Pagination)
+GET {{baseUrl}}/public/blogs?page=1&limit=5
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Published blogs retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "9dd47567-a479-4d48-b256-8fea92913307",
+#       "title": "Public API Test Blog",
+#       "slug": "public-api-test-blog",
+#       "excerpt": null,
+#       "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "categoryId": null,
+#       "status": "published",
+#       "isFeatured": false,
+#       "publishedAt": "2026-05-23T14:14:20.812Z",
+#       "readTimeMinutes": 1,
+#       "createdAt": "2026-05-23T14:14:19.880Z",
+#       "updatedAt": "2026-05-23T14:14:20.812Z",
+#       "author": {
+#         "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#         "name": "Super Admin",
+#         "avatarUrl": null
+#       },
+#       "Category": null,
+#       "Tags": [
+#         {
+#           "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#           "name": "test",
+#           "slug": "test"
+#         }
+#       ],
+#       "Images": [],
+#       "BlogAnalytic": {
+#         "totalViews": "6",
+#         "avgReadTimeSec": 38
+#       }
+#     }
+#   ],
+#   "meta": {
+#     "currentPage": 1,
+#     "perPage": 5,
+#     "totalCount": 1,
+#     "totalPages": 1,
+#     "hasPrevPage": false,
+#     "hasNextPage": false
+#   },
+#   "timestamp": "2026-05-23T16:31:31.878Z"
+# }
+### 7. Get Single Blog By Slug
+GET {{baseUrl}}/public/blogs/public-api-test-blog
+
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Blog retrieved successfully.",
+#   "data": {
+#     "id": "9dd47567-a479-4d48-b256-8fea92913307",
+#     "title": "Public API Test Blog",
+#     "slug": "public-api-test-blog",
+#     "excerpt": null,
+#     "contentHtml": "<p>Content</p>",
+#     "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#     "categoryId": null,
+#     "status": "published",
+#     "isFeatured": false,
+#     "publishedAt": "2026-05-23T14:14:20.812Z",
+#     "readTimeMinutes": 1,
+#     "seoTitle": null,
+#     "seoDescription": null,
+#     "canonicalUrl": null,
+#     "focusKeyword": null,
+#     "structuredData": null,
+#     "ogImageUrl": null,
+#     "ogTitle": null,
+#     "ogDescription": null,
+#     "createdAt": "2026-05-23T14:14:19.880Z",
+#     "updatedAt": "2026-05-23T14:14:20.812Z",
+#     "author": {
+#       "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "name": "Super Admin",
+#       "avatarUrl": null
+#     },
+#     "Category": null,
+#     "Tags": [
+#       {
+#         "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#         "name": "test",
+#         "slug": "test"
+#       }
+#     ],
+#     "Images": [],
+#     "BlogAnalytic": {
+#       "totalViews": "6",
+#       "avgReadTimeSec": 38
+#     }
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:32:10.911Z"
+# }
+### 8. Search Blogs (With Pagination)
+GET {{baseUrl}}/public/search?q=public&page=1&limit=5
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Search results retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "9dd47567-a479-4d48-b256-8fea92913307",
+#       "title": "Public API Test Blog",
+#       "slug": "public-api-test-blog",
+#       "excerpt": null,
+#       "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "categoryId": null,
+#       "status": "published",
+#       "isFeatured": false,
+#       "publishedAt": "2026-05-23T14:14:20.812Z",
+#       "readTimeMinutes": 1,
+#       "createdAt": "2026-05-23T14:14:19.880Z",
+#       "updatedAt": "2026-05-23T14:14:20.812Z",
+#       "author": {
+#         "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#         "name": "Super Admin",
+#         "avatarUrl": null
+#       },
+#       "Category": null,
+#       "Tags": [
+#         {
+#           "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#           "name": "test",
+#           "slug": "test"
+#         }
+#       ],
+#       "Images": [],
+#       "BlogAnalytic": {
+#         "totalViews": "6",
+#         "avgReadTimeSec": 38
+#       }
+#     }
+#   ],
+#   "meta": {
+#     "currentPage": 1,
+#     "perPage": 5,
+#     "totalCount": 1,
+#     "totalPages": 1,
+#     "hasPrevPage": false,
+#     "hasNextPage": false
+#   },
+#   "timestamp": "2026-05-23T16:32:37.973Z"
+# }
+### 9. Get Blogs By Category Slug (With Pagination)
+GET {{baseUrl}}/public/search/category/technology?page=1&limit=5
+
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Category blogs retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "9dd47567-a479-4d48-b256-8fea92913307",
+#       "title": "Public API Test Blog",
+#       "slug": "public-api-test-blog",
+#       "excerpt": null,
+#       "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "categoryId": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#       "status": "published",
+#       "isFeatured": false,
+#       "publishedAt": "2026-05-23T14:14:20.812Z",
+#       "readTimeMinutes": 1,
+#       "createdAt": "2026-05-23T14:14:19.880Z",
+#       "updatedAt": "2026-05-23T16:35:41.092Z",
+#       "author": {
+#         "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#         "name": "Super Admin",
+#         "avatarUrl": null
+#       },
+#       "Category": {
+#         "id": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#         "name": "Technology",
+#         "slug": "technology"
+#       },
+#       "Tags": [
+#         {
+#           "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#           "name": "test",
+#           "slug": "test"
+#         }
+#       ],
+#       "Images": [],
+#       "BlogAnalytic": {
+#         "totalViews": "6",
+#         "avgReadTimeSec": 38
+#       }
+#     }
+#   ],
+#   "meta": {
+#     "currentPage": 1,
+#     "perPage": 5,
+#     "totalCount": 1,
+#     "totalPages": 1,
+#     "hasPrevPage": false,
+#     "hasNextPage": false
+#   },
+#   "timestamp": "2026-05-23T16:35:48.139Z"
+# }
+
+### 10. Get Blogs By Tag Slug (With Pagination)
+GET {{baseUrl}}/public/search/tag/test?page=1&limit=5
+
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Tag blogs retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "9dd47567-a479-4d48-b256-8fea92913307",
+#       "title": "Public API Test Blog",
+#       "slug": "public-api-test-blog",
+#       "excerpt": null,
+#       "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "categoryId": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#       "status": "published",
+#       "isFeatured": false,
+#       "publishedAt": "2026-05-23T14:14:20.812Z",
+#       "readTimeMinutes": 1,
+#       "createdAt": "2026-05-23T14:14:19.880Z",
+#       "updatedAt": "2026-05-23T16:35:41.092Z",
+#       "author": {
+#         "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#         "name": "Super Admin",
+#         "avatarUrl": null
+#       },
+#       "Category": {
+#         "id": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#         "name": "Technology",
+#         "slug": "technology"
+#       },
+#       "Tags": [
+#         {
+#           "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#           "name": "test",
+#           "slug": "test"
+#         }
+#       ],
+#       "Images": [],
+#       "BlogAnalytic": {
+#         "totalViews": "6",
+#         "avgReadTimeSec": 38
+#       }
+#     }
+#   ],
+#   "meta": {
+#     "currentPage": 1,
+#     "perPage": 5,
+#     "totalCount": 1,
+#     "totalPages": 1,
+#     "hasPrevPage": false,
+#     "hasNextPage": false
+#   },
+#   "timestamp": "2026-05-23T16:37:22.001Z"
+# }
+### 11. Get Single Category By Slug
+GET {{baseUrl}}/public/categories/technology
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Category retrieved successfully.",
+#   "data": {
+#     "id": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#     "name": "Technology",
+#     "slug": "technology",
+#     "description": "Latest technology updates, gadgets review, and tech news.",
+#     "metaTitle": "Technology News & Updates | AllTechTamil",
+#     "metaDescription": "Stay ahead with the latest technology updates, gadget reviews, and trending tech news in Tamil.",
+#     "isActive": true,
+#     "sortOrder": 1,
+#     "createdAt": "2026-05-23T11:14:48.738Z",
+#     "updatedAt": "2026-05-23T11:14:48.738Z"
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:36:30.684Z"
+# }
+### 12. Get All Tags (Popularly Sorted)
+GET {{baseUrl}}/public/tags?popular=true
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Tags retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#       "name": "test",
+#       "slug": "test",
+#       "createdAt": "2026-05-23T14:14:20.114Z",
+#       "usageCount": "1"
+#     },
+#     {
+#       "id": "7e732fd9-fdae-4463-9f7b-ed2e8576e973",
+#       "name": "Angular Framework",
+#       "slug": "angularjs",
+#       "createdAt": "2026-05-23T13:39:32.522Z",
+#       "usageCount": "0"
+#     },
+#     {
+#       "id": "53e0cd28-a659-4fa2-a41b-c9e25b661ae2",
+#       "name": "cybersecurity",
+#       "slug": "cybersecurity",
+#       "createdAt": "2026-05-23T13:46:10.624Z",
+#       "usageCount": "0"
+#     },
+#     {
+#       "id": "7ae4d7e8-eb9d-430b-bd21-677fb3efa760",
+#       "name": "frontend",
+#       "slug": "frontend",
+#       "createdAt": "2026-05-23T13:46:11.509Z",
+#       "usageCount": "0"
+#     },
+#     {
+#       "id": "dc7c69da-9bcd-4426-be12-3f439662ab07",
+#       "name": "web",
+#       "slug": "web",
+#       "createdAt": "2026-05-23T13:46:10.626Z",
+#       "usageCount": "0"
+#     }
+#   ],
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:37:52.302Z"
+# }
+### 13. Get Single Tag By Slug
+GET {{baseUrl}}/public/tags/angularjs
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Tag retrieved successfully.",
+#   "data": {
+#     "id": "7e732fd9-fdae-4463-9f7b-ed2e8576e973",
+#     "name": "Angular Framework",
+#     "slug": "angularjs",
+#     "createdAt": "2026-05-23T13:39:32.522Z"
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:38:15.254Z"
+# }
+### 14. Get Active Ads by Placement
+GET {{baseUrl}}/public/ads?placement=HOME_TOP
+
+
+### ==========================================
+### AUTH & ADMIN ROUTES
+### ==========================================
+
+### 6. Admin Login
+# @name login
+POST {{baseUrl}}/admin/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+# RESPONSE:
+
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Login successful.",
+#   "data": {
+#     "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3MzIzYWQ5Yy01OGQ1LTQzN2UtODdlNC0wYTFkNTA3ZTcxOGYiLCJyb2xlIjoic3VwZXJhZG1pbiIsImlhdCI6MTc3OTU1NDQzOCwiZXhwIjoxNzc5NTU1MzM4fQ.rPHDGWNaChb_9CCjDQEsZUFXg3OocXKA9OSSpgZPVSk",
+#     "user": {
+#       "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "name": "Super Admin",
+#       "email": "admin@alltectamil.com",
+#       "role": "superadmin",
+#       "avatarUrl": null,
+#       "lastLoginAt": "2026-05-23T16:40:38.441Z"
+#     }
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:40:38.528Z"
+# }
+
+### 7. Get System Analytics Overview (Requires Token)
+GET {{baseUrl}}/admin/analytics/overview
+Authorization: Bearer {{token}}
+
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Analytics overview retrieved successfully.",
+#   "data": {
+#     "counts": {
+#       "totalBlogs": 2,
+#       "publishedBlogs": 1,
+#       "totalViews": 6
+#     },
+#     "topBlogs": [
+#       {
+#         "id": "ed92a785-8005-4a52-9cc1-545c67ede7c4",
+#         "blogId": "9dd47567-a479-4d48-b256-8fea92913307",
+#         "totalViews": "6",
+#         "uniqueVisitors": "4",
+#         "avgReadTimeSec": 38,
+#         "bounceCount": "0",
+#         "lastViewedAt": "2026-05-23T16:18:59.529Z",
+#         "createdAt": "2026-05-23T14:14:19.971Z",
+#         "updatedAt": "2026-05-23T16:30:00.270Z",
+#         "Blog": {
+#           "id": "9dd47567-a479-4d48-b256-8fea92913307",
+#           "title": "Public API Test Blog",
+#           "slug": "public-api-test-blog",
+#           "status": "published"
+#         }
+#       },
+#       {
+#         "id": "2fef5d30-b506-4caf-b260-09ea5a4891a3",
+#         "blogId": "4e197e9b-3187-46fc-a701-28c3301738bb",
+#         "totalViews": "0",
+#         "uniqueVisitors": "0",
+#         "avgReadTimeSec": 0,
+#         "bounceCount": "0",
+#         "lastViewedAt": null,
+#         "createdAt": "2026-05-23T15:07:48.423Z",
+#         "updatedAt": "2026-05-23T15:07:48.423Z",
+#         "Blog": {
+#           "id": "4e197e9b-3187-46fc-a701-28c3301738bb",
+#           "title": "XSS Test Blog 1779548868049",
+#           "slug": "xss-test-blog-1779548868049",
+#           "status": "draft"
+#         }
+#       }
+#     ],
+#     "trendingTags": [
+#       {
+#         "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#         "name": "test",
+#         "slug": "test",
+#         "totalViews": "6"
+#       }
+#     ],
+#     "recentSearches": [
+#       {
+#         "id": "14",
+#         "query": "public",
+#         "resultCount": 1,
+#         "searchedAt": "2026-05-23T16:32:37.973Z"
+#       },
+#       {
+#         "id": "13",
+#         "query": "public",
+#         "resultCount": 1,
+#         "searchedAt": "2026-05-23T16:28:03.031Z"
+#       },
+#       {
+#         "id": "12",
+#         "query": "technology",
+#         "resultCount": 0,
+#         "searchedAt": "2026-05-23T16:27:17.222Z"
+#       },
+#       {
+#         "id": "11",
+#         "query": "tech",
+#         "resultCount": 0,
+#         "searchedAt": "2026-05-23T16:27:10.922Z"
+#       },
+#       {
+#         "id": "10",
+#         "query": "test",
+#         "resultCount": 1,
+#         "searchedAt": "2026-05-23T16:26:42.625Z"
+#       },
+#       {
+#         "id": "9",
+#         "query": "test",
+#         "resultCount": 1,
+#         "searchedAt": "2026-05-23T16:18:58.634Z"
+#       },
+#       {
+#         "id": "8",
+#         "query": "test",
+#         "resultCount": 1,
+#         "searchedAt": "2026-05-23T16:17:39.282Z"
+#       },
+#       {
+#         "id": "7",
+#         "query": "test",
+#         "resultCount": 1,
+#         "searchedAt": "2026-05-23T16:17:08.214Z"
+#       },
+#       {
+#         "id": "6",
+#         "query": "test",
+#         "resultCount": 1,
+#         "searchedAt": "2026-05-23T16:16:46.880Z"
+#       },
+#       {
+#         "id": "5",
+#         "query": "test",
+#         "resultCount": 1,
+#         "searchedAt": "2026-05-23T16:16:26.632Z"
+#       }
+#     ]
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:41:33.581Z"
+# }
+### 8. Get All Categories (Admin View, Includes Inactive)
+GET {{baseUrl}}/admin/categories
+Authorization: Bearer {{token}}
+
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Categories retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#       "name": "Technology",
+#       "slug": "technology",
+#       "description": "Latest technology updates, gadgets review, and tech news.",
+#       "metaTitle": "Technology News & Updates | AllTechTamil",
+#       "metaDescription": "Stay ahead with the latest technology updates, gadget reviews, and trending tech news in Tamil.",
+#       "isActive": true,
+#       "sortOrder": 1,
+#       "createdAt": "2026-05-23T11:14:48.738Z",
+#       "updatedAt": "2026-05-23T11:14:48.738Z"
+#     },
+#     {
+#       "id": "e81d7abb-4c4a-41ed-8ec9-3c754a3c4187",
+#       "name": "Programming",
+#       "slug": "programming",
+#       "description": "Web development, coding tutorials, tips, and programming guidelines.",
+#       "metaTitle": "Programming & Web Development Tutorials | AllTechTamil",
+#       "metaDescription": "Learn modern programming languages, software architecture, and web development guidelines.",
+#       "isActive": true,
+#       "sortOrder": 2,
+#       "createdAt": "2026-05-23T11:14:48.738Z",
+#       "updatedAt": "2026-05-23T11:14:48.738Z"
+#     },
+#     {
+#       "id": "afb484a1-02c8-4cc8-879b-4322517e138f",
+#       "name": "Android",
+#       "slug": "android",
+#       "description": "Android app reviews, custom ROMs, customization, and updates.",
+#       "metaTitle": "Android Apps, ROMs & Customization | AllTechTamil",
+#       "metaDescription": "Explore Android applications, mobile hacks, customization tips, and root guides.",
+#       "isActive": true,
+#       "sortOrder": 3,
+#       "createdAt": "2026-05-23T11:14:48.738Z",
+#       "updatedAt": "2026-05-23T11:14:48.738Z"
+#     },
+#     {
+#       "id": "65c47c80-7183-4876-a03f-7cba19593f5e",
+#       "name": "Reviews",
+#       "slug": "reviews",
+#       "description": "Unbiased and in-depth product, smartphone, and service reviews.",
+#       "metaTitle": "Tech Product & Smartphone Reviews | AllTechTamil",
+#       "metaDescription": "Read unbiased and thorough reviews of the latest smartphones, gadgets, and software.",
+#       "isActive": true,
+#       "sortOrder": 4,
+#       "createdAt": "2026-05-23T11:14:48.738Z",
+#       "updatedAt": "2026-05-23T11:14:48.738Z"
+#     },
+#     {
+#       "id": "35f85647-599f-4631-bf92-cacc2bd879d0",
+#       "name": "Tutorials",
+#       "slug": "tutorials",
+#       "description": "Step-by-step guides, how-to tutorials, and tech solutions.",
+#       "metaTitle": "How-To Guides & Tech Tutorials | AllTechTamil",
+#       "metaDescription": "Detailed step-by-step tech guides, smart how-tos, and troubleshooting solutions.",
+#       "isActive": true,
+#       "sortOrder": 5,
+#       "createdAt": "2026-05-23T11:14:48.738Z",
+#       "updatedAt": "2026-05-23T11:14:48.738Z"
+#     },
+#     {
+#       "id": "75ffe08e-51a7-4878-a0ec-4b1c4801eb4f",
+#       "name": "AI & ML",
+#       "slug": "ai-ml",
+#       "description": "Artificial Intelligence, Machine Learning, and future technology trends.",
+#       "metaTitle": "AI, Machine Learning & Future Tech | AllTechTamil",
+#       "metaDescription": "Discover the latest breakthroughs in Artificial Intelligence, Machine Learning, and robotics.",
+#       "isActive": true,
+#       "sortOrder": 6,
+#       "createdAt": "2026-05-23T11:14:48.738Z",
+#       "updatedAt": "2026-05-23T11:14:48.738Z"
+#     }
+#   ],
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:42:10.039Z"
+# }
+### 9. Get Current Logged-in User Profile
+GET {{baseUrl}}/admin/auth/me
+Authorization: Bearer {{token}}
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "User profile fetched successfully.",
+#   "data": {
+#     "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#     "name": "Super Admin",
+#     "email": "admin@alltectamil.com",
+#     "role": "superadmin",
+#     "avatarUrl": null,
+#     "isActive": true,
+#     "lastLoginAt": "2026-05-23T16:40:38.441Z",
+#     "createdAt": "2026-05-23T11:14:48.653Z"
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:42:43.956Z"
+# }
+### ==========================================
+### CREATE SAMPLE DATA (Requires Token)
+### ==========================================
+
+### 10. Create Sample Category
+POST {{baseUrl}}/admin/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Artificial Intelligence",
+  "slug": "artificial-intelligence",
+  "description": "All about AI, ChatGPT, and the future of machine learning.",
+  "metaTitle": "AI News and Updates",
+  "metaDescription": "Get the latest on AI, neural networks, and more.",
+  "isActive": true,
+  "sortOrder": 10
+}
+
+# REPONSE:
+
+# {
+#   "success": true,
+#   "status_code": 201,
+#   "message": "Category created successfully.",
+#   "data": {
+#     "id": "98c31557-67d5-43ab-9ae0-60626d478e95",
+#     "name": "Artificial Intelligence",
+#     "slug": "artificial-intelligence",
+#     "description": "All about AI, ChatGPT, and the future of machine learning.",
+#     "metaTitle": "AI News and Updates",
+#     "metaDescription": "Get the latest on AI, neural networks, and more.",
+#     "isActive": true,
+#     "sortOrder": 10,
+#     "updatedAt": "2026-05-23T16:43:01.760Z",
+#     "createdAt": "2026-05-23T16:43:01.760Z"
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:43:01.838Z"
+# }
+
+### 11. Create Sample Tag
+POST {{baseUrl}}/admin/tags
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "ChatGPT",
+  "slug": "chatgpt"
+}
+
+# RESPONSE:
+
+# {
+#   "success": true,
+#   "status_code": 201,
+#   "message": "Tag created successfully.",
+#   "data": {
+#     "id": "8e4ed222-ba96-4273-882e-7dff1e97e21c",
+#     "name": "ChatGPT",
+#     "slug": "chatgpt",
+#     "createdAt": "2026-05-23T16:43:54.834Z"
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:43:55.290Z"
+# }
+
+# ERROR RESPONSE
+# {
+#   "success": false,
+#   "status_code": 409,
+#   "message": "A tag with this exact name already exists.",
+#   "correlation_id": "6020c90b-f42f-485e-8c94-6f816313b972",
+#   "errors": null,
+#   "timestamp": "2026-05-23T16:49:27.019Z"
+# }
+
+### 12. Create Sample Ad Unit
+POST {{baseUrl}}/admin/ads
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Google AdSense Header",
+  "placement": "HOME_TOP",
+  "ad_script": "<script async src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'></script><ins class='adsbygoogle'></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script>",
+  "is_active": true
+}
+
+# RESPONSE
+
+# {
+#   "success": true,
+#   "status_code": 201,
+#   "message": "Ad created successfully.",
+#   "data": {
+#     "id": "7632da3d-0fe3-4f61-b57b-d3a53d9877bf",
+#     "name": "Google AdSense Header",
+#     "placement": "HOME_TOP",
+#     "adScript": "<script async src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js'></script><ins class='adsbygoogle'></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script>",
+#     "deviceTarget": "all",
+#     "isActive": true,
+#     "sortOrder": 0,
+#     "updatedAt": "2026-05-23T16:45:38.622Z",
+#     "createdAt": "2026-05-23T16:45:38.622Z"
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:45:38.730Z"
+# }
+
+# ERROR RESPONSE
+# {
+#   "success": false,
+#   "status_code": 400,
+#   "message": "Ad script is a mandatory field.",
+#   "correlation_id": "c14aa987-b5ae-4473-8f1b-83007239c74a",
+#   "errors": null,
+#   "timestamp": "2026-05-23T16:48:40.530Z"
+# }
+
+### 13. Create Sample Blog Post
+POST {{baseUrl}}/admin/blogs
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Welcome to AllTechTamil API Architecture",
+  "slug": "welcome-alltechtamil-api",
+  "content_html": "<h2>The Ultimate Backend</h2><p>This blog post proves the secure API and admin systems are fully active.</p>",
+  "excerpt": "A deep dive into building the ultimate scalable tech blog.",
+  "status": "published",
+  "is_featured": true,
+  "seo_title": "AllTechTamil API Architecture Review",
+  "seo_description": "Discover how to build a scalable and secure Node.js backend.",
+  "tags": ["Machine Learning"]
+}
+
+# REPONSE
+# {
+#   "success": true,
+#   "status_code": 201,
+#   "message": "Blog created successfully.",
+#   "data": {
+#     "id": "1b5343dd-e31b-4ed0-837a-a29a0bee2534",
+#     "title": "Welcome to AllTechTamil API Architecture",
+#     "slug": "welcome-alltechtamil-api",
+#     "excerpt": "A deep dive into building the ultimate scalable tech blog.",
+#     "contentHtml": "<h2>The Ultimate Backend</h2><p>This blog post proves the secure API and admin systems are fully active.</p>",
+#     "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#     "categoryId": null,
+#     "status": "published",
+#     "isFeatured": true,
+#     "publishedAt": null,
+#     "readTimeMinutes": 1,
+#     "seoTitle": "AllTechTamil API Architecture Review",
+#     "seoDescription": "Discover how to build a scalable and secure Node.js backend.",
+#     "canonicalUrl": null,
+#     "focusKeyword": null,
+#     "structuredData": null,
+#     "ogImageUrl": null,
+#     "ogTitle": null,
+#     "ogDescription": null,
+#     "createdAt": "2026-05-23T16:47:19.253Z",
+#     "updatedAt": "2026-05-23T16:47:19.253Z",
+#     "author": {
+#       "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "name": "Super Admin",
+#       "email": "admin@alltectamil.com",
+#       "avatarUrl": null,
+#       "role": "superadmin"
+#     },
+#     "Category": null,
+#     "Tags": [
+#       {
+#         "id": "1abbfec6-295a-4ac7-b315-cb86b9a71c16",
+#         "name": "Machine Learning",
+#         "slug": "machine-learning",
+#         "createdAt": "2026-05-23T16:43:33.200Z"
+#       }
+#     ],
+#     "Images": [],
+#     "BlogAnalytic": {
+#       "id": "b52e9adb-1a20-467b-87f4-a69200565e11",
+#       "blogId": "1b5343dd-e31b-4ed0-837a-a29a0bee2534",
+#       "totalViews": "0",
+#       "uniqueVisitors": "0",
+#       "avgReadTimeSec": 0,
+#       "bounceCount": "0",
+#       "lastViewedAt": null,
+#       "createdAt": "2026-05-23T16:47:19.723Z",
+#       "updatedAt": "2026-05-23T16:47:19.723Z"
+#     }
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:47:22.966Z"
+# }
+
+# ERROR RESPONSE
+# {
+#   "success": false,
+#   "status_code": 400,
+#   "message": "Title is required.",
+#   "correlation_id": "c23e482f-f2ba-4ec1-ba64-1ef7a4ec31f7",
+#   "errors": [
+#     {
+#       "field": "title",
+#       "message": "Title is required."
+#     }
+#   ],
+#   "timestamp": "2026-05-23T16:48:03.210Z"
+# }
+
+
+### ==========================================
+### ADDITIONAL AUTH ROUTES
+### ==========================================
+
+### 14. Refresh Token
+POST {{baseUrl}}/admin/auth/refresh
+
+### 15. Logout
+POST {{baseUrl}}/admin/auth/logout
+
+
+### ==========================================
+### MANAGEMENT ROUTES (UPDATE / DELETE)
+### ==========================================
+### Note: Replace :id below with an actual UUID from the creation responses
+
+### 16. Update Category
+PUT {{baseUrl}}/admin/categories/:id
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated AI & ML",
+  "isActive": false
+}
+
+### 17. Delete Category
+DELETE {{baseUrl}}/admin/categories/:id
+Authorization: Bearer {{token}}
+
+### 18. Update Tag
+PUT {{baseUrl}}/admin/tags/:id
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Updated ChatGPT"
+}
+
+### 19. Delete Tag
+DELETE {{baseUrl}}/admin/tags/:id
+Authorization: Bearer {{token}}
+
+### 20. Update Ad Unit
+PATCH {{baseUrl}}/admin/ads/:id
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "is_active": false
+}
+
+### 21. Delete Ad Unit
+DELETE {{baseUrl}}/admin/ads/:id
+Authorization: Bearer {{token}}
+
+### 22. Get All Blogs (Admin List View, Includes Drafts)
+GET {{baseUrl}}/admin/blogs
+Authorization: Bearer {{token}}
+# RESPONSE:
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Blogs retrieved successfully.",
+#   "data": [
+#     {
+#       "id": "1b5343dd-e31b-4ed0-837a-a29a0bee2534",
+#       "title": "Welcome to AllTechTamil API Architecture",
+#       "slug": "welcome-alltechtamil-api",
+#       "excerpt": "A deep dive into building the ultimate scalable tech blog.",
+#       "contentHtml": "<h2>The Ultimate Backend</h2><p>This blog post proves the secure API and admin systems are fully active.</p>",
+#       "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "categoryId": null,
+#       "status": "published",
+#       "isFeatured": true,
+#       "publishedAt": null,
+#       "readTimeMinutes": 1,
+#       "seoTitle": "AllTechTamil API Architecture Review",
+#       "seoDescription": "Discover how to build a scalable and secure Node.js backend.",
+#       "canonicalUrl": null,
+#       "focusKeyword": null,
+#       "structuredData": null,
+#       "ogImageUrl": null,
+#       "ogTitle": null,
+#       "ogDescription": null,
+#       "createdAt": "2026-05-23T16:47:19.253Z",
+#       "updatedAt": "2026-05-23T16:47:19.253Z",
+#       "author": {
+#         "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#         "name": "Super Admin",
+#         "email": "admin@alltectamil.com",
+#         "avatarUrl": null,
+#         "role": "superadmin"
+#       },
+#       "Category": null,
+#       "Tags": [
+#         {
+#           "id": "1abbfec6-295a-4ac7-b315-cb86b9a71c16",
+#           "name": "Machine Learning",
+#           "slug": "machine-learning"
+#         }
+#       ]
+#     },
+#     {
+#       "id": "9dd47567-a479-4d48-b256-8fea92913307",
+#       "title": "Public API Test Blog",
+#       "slug": "public-api-test-blog",
+#       "excerpt": null,
+#       "contentHtml": "<p>Content</p>",
+#       "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "categoryId": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#       "status": "published",
+#       "isFeatured": false,
+#       "publishedAt": "2026-05-23T14:14:20.812Z",
+#       "readTimeMinutes": 1,
+#       "seoTitle": null,
+#       "seoDescription": null,
+#       "canonicalUrl": null,
+#       "focusKeyword": null,
+#       "structuredData": null,
+#       "ogImageUrl": null,
+#       "ogTitle": null,
+#       "ogDescription": null,
+#       "createdAt": "2026-05-23T14:14:19.880Z",
+#       "updatedAt": "2026-05-23T16:35:41.092Z",
+#       "author": {
+#         "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#         "name": "Super Admin",
+#         "email": "admin@alltectamil.com",
+#         "avatarUrl": null,
+#         "role": "superadmin"
+#       },
+#       "Category": {
+#         "id": "229783f9-ad64-4c82-9db7-f8631e90b79a",
+#         "name": "Technology",
+#         "slug": "technology"
+#       },
+#       "Tags": [
+#         {
+#           "id": "bc9960fa-4fd2-437a-9317-7587a610432d",
+#           "name": "test",
+#           "slug": "test"
+#         }
+#       ]
+#     }
+#   ],
+#   "meta": {
+#     "currentPage": 1,
+#     "perPage": 10,
+#     "totalCount": 2,
+#     "totalPages": 1,
+#     "hasPrevPage": false,
+#     "hasNextPage": false
+#   },
+#   "timestamp": "2026-05-23T16:55:55.771Z"
+# }
+### 23. Get Single Blog by Slug (Admin Edit View)
+GET {{baseUrl}}/admin/blogs/slug/welcome-alltechtamil-api
+Authorization: Bearer {{token}}
+# RESPONSE:
+
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Blog retrieved successfully.",
+#   "data": {
+#     "id": "1b5343dd-e31b-4ed0-837a-a29a0bee2534",
+#     "title": "Welcome to AllTechTamil API Architecture",
+#     "slug": "welcome-alltechtamil-api",
+#     "excerpt": "A deep dive into building the ultimate scalable tech blog.",
+#     "contentHtml": "<h2>The Ultimate Backend</h2><p>This blog post proves the secure API and admin systems are fully active.</p>",
+#     "authorId": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#     "categoryId": null,
+#     "status": "published",
+#     "isFeatured": true,
+#     "publishedAt": null,
+#     "readTimeMinutes": 1,
+#     "seoTitle": "AllTechTamil API Architecture Review",
+#     "seoDescription": "Discover how to build a scalable and secure Node.js backend.",
+#     "canonicalUrl": null,
+#     "focusKeyword": null,
+#     "structuredData": null,
+#     "ogImageUrl": null,
+#     "ogTitle": null,
+#     "ogDescription": null,
+#     "createdAt": "2026-05-23T16:47:19.253Z",
+#     "updatedAt": "2026-05-23T16:47:19.253Z",
+#     "author": {
+#       "id": "7323ad9c-58d5-437e-87e4-0a1d507e718f",
+#       "name": "Super Admin",
+#       "email": "admin@alltectamil.com",
+#       "avatarUrl": null,
+#       "role": "superadmin"
+#     },
+#     "Category": null,
+#     "Tags": [
+#       {
+#         "id": "1abbfec6-295a-4ac7-b315-cb86b9a71c16",
+#         "name": "Machine Learning",
+#         "slug": "machine-learning",
+#         "createdAt": "2026-05-23T16:43:33.200Z"
+#       }
+#     ],
+#     "Images": [],
+#     "BlogAnalytic": {
+#       "id": "b52e9adb-1a20-467b-87f4-a69200565e11",
+#       "blogId": "1b5343dd-e31b-4ed0-837a-a29a0bee2534",
+#       "totalViews": "0",
+#       "uniqueVisitors": "0",
+#       "avgReadTimeSec": 0,
+#       "bounceCount": "0",
+#       "lastViewedAt": null,
+#       "createdAt": "2026-05-23T16:47:19.723Z",
+#       "updatedAt": "2026-05-23T16:47:19.723Z"
+#     }
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:56:47.244Z"
+# }
+### 24. Update Blog Post
+PUT {{baseUrl}}/admin/blogs/:id
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated API Architecture",
+  "content_html": "<p>Updated content</p>"
+}
+
+### 25. Update Blog Status
+PATCH {{baseUrl}}/admin/blogs/:id/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "status": "draft"
+}
+
+### 26. Delete Blog Post
+DELETE {{baseUrl}}/admin/blogs/:id
+Authorization: Bearer {{token}}
+
+
+### ==========================================
+### IMAGE MEDIA ROUTES
+### ==========================================
+
+### 25. Upload Image (Multipart Form Data)
+# Note: REST Client doesn't natively support dynamic file path injection easily,
+# but here is the format. You will need to select a file manually in tools like Postman.
+POST {{baseUrl}}/admin/images/upload
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="image"; filename="test.jpg"
+Content-Type: image/jpeg
+
+< ./test.jpg
+--boundary--
+
+### 26. Get All Uploaded Images
+GET {{baseUrl}}/admin/images
+Authorization: Bearer {{token}}
+
+### 27. Delete Image
+DELETE {{baseUrl}}/admin/images/:id
+Authorization: Bearer {{token}}
+
+
+### ==========================================
+### ADDITIONAL ANALYTICS ROUTES
+### ==========================================
+
+### 28. Get Search Trends
+GET {{baseUrl}}/admin/analytics/search-trends
+Authorization: Bearer {{token}}
+# RESPONSE:
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Search trends retrieved successfully.",
+#   "data": [
+#     {
+#       "query": "test",
+#       "occurrences": "6",
+#       "lastSearched": "2026-05-23T16:26:42.625Z"
+#     },
+#     {
+#       "query": "a",
+#       "occurrences": "3",
+#       "lastSearched": "2026-05-23T14:15:11.164Z"
+#     },
+#     {
+#       "query": "public",
+#       "occurrences": "2",
+#       "lastSearched": "2026-05-23T16:32:37.973Z"
+#     },
+#     {
+#       "query": "technology",
+#       "occurrences": "1",
+#       "lastSearched": "2026-05-23T16:27:17.222Z"
+#     },
+#     {
+#       "query": "tech",
+#       "occurrences": "1",
+#       "lastSearched": "2026-05-23T16:27:10.922Z"
+#     },
+#     {
+#       "query": "typescript",
+#       "occurrences": "1",
+#       "lastSearched": "2026-05-23T14:33:30.745Z"
+#     }
+#   ],
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:52:44.454Z"
+# }
+### 29. Get Specific Blog Analytics
+GET {{baseUrl}}/admin/analytics/blogs/1b5343dd-e31b-4ed0-837a-a29a0bee2534
+Authorization: Bearer {{token}}
+# REPONSE
+# {
+#   "success": true,
+#   "status_code": 200,
+#   "message": "Blog analytics retrieved successfully.",
+#   "data": {
+#     "id": "b52e9adb-1a20-467b-87f4-a69200565e11",
+#     "blogId": "1b5343dd-e31b-4ed0-837a-a29a0bee2534",
+#     "totalViews": "0",
+#     "uniqueVisitors": "0",
+#     "avgReadTimeSec": 0,
+#     "bounceCount": "0",
+#     "lastViewedAt": null,
+#     "createdAt": "2026-05-23T16:47:19.723Z",
+#     "updatedAt": "2026-05-23T16:47:19.723Z",
+#     "Blog": {
+#       "id": "1b5343dd-e31b-4ed0-837a-a29a0bee2534",
+#       "title": "Welcome to AllTechTamil API Architecture",
+#       "status": "published",
+#       "publishedAt": null,
+#       "author": {
+#         "name": "Super Admin"
+#       },
+#       "Category": null
+#     }
+#   },
+#   "meta": null,
+#   "timestamp": "2026-05-23T16:53:43.907Z"
+# }

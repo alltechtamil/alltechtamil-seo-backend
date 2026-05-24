@@ -1,0 +1,75 @@
+NEXT.JS SITEMAP IMPLEMENTATION GUIDE (OPTION 1)
+======================================================
+This file contains the exact code you will need to place in your Next.js frontend repository to dynamically generate your sitemap.xml based on your AllTechTamil backend API.
+
+Instructions:
+1. In your Next.js project, navigate to the `app/` directory.
+2. Create a file named `sitemap.ts` (so the path is `app/sitemap.ts`).
+3. Paste the code below into that file.
+
+------------------------------------------------------
+CODE FOR: app/sitemap.ts
+------------------------------------------------------
+
+import { MetadataRoute } from 'next';
+
+// Define your environment variables in your Next.js .env file
+const FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://alltechtamil.com';
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:5000/api/v1';
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  
+  // 1. Fetch published blogs from your existing public API
+  // Using a high limit to ensure all published blogs are included
+  const blogRes = await fetch(`${BACKEND_URL}/public/blogs?page=1&limit=1000`, { 
+    next: { revalidate: 3600 } // Revalidate cache every hour
+  });
+  const blogData = await blogRes.json();
+  const blogs = blogData.data || [];
+
+  const blogUrls: MetadataRoute.Sitemap = blogs.map((blog: any) => ({
+    url: `${FRONTEND_URL}/${blog.slug}`,
+    lastModified: new Date(blog.updatedAt),
+    changeFrequency: 'weekly',
+    priority: 0.8,
+  }));
+
+  // 2. Fetch active categories
+  const catRes = await fetch(`${BACKEND_URL}/public/categories`, {
+    next: { revalidate: 86400 } // Revalidate cache daily
+  });
+  const catData = await catRes.json();
+  const categories = catData.data || [];
+
+  const categoryUrls: MetadataRoute.Sitemap = categories.map((cat: any) => ({
+    url: `${FRONTEND_URL}/category/${cat.slug}`,
+    lastModified: new Date(cat.updatedAt),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  }));
+
+  // 3. Static Pages Configuration
+  const staticUrls: MetadataRoute.Sitemap = [
+    { 
+      url: `${FRONTEND_URL}`, 
+      lastModified: new Date(), 
+      changeFrequency: 'daily', 
+      priority: 1.0 
+    },
+    { 
+      url: `${FRONTEND_URL}/about`, 
+      lastModified: new Date(), 
+      changeFrequency: 'monthly', 
+      priority: 0.5 
+    },
+    { 
+      url: `${FRONTEND_URL}/contact`, 
+      lastModified: new Date(), 
+      changeFrequency: 'monthly', 
+      priority: 0.5 
+    }
+  ];
+
+  // Return the combined array to let Next.js generate the XML
+  return [...staticUrls, ...categoryUrls, ...blogUrls];
+}
