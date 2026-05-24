@@ -683,6 +683,15 @@ GET    /blog/:blog_id           (Auth: editor+)
 
 
 --------------------------------------------------
+DASHBOARD ROUTES: /api/v1/dashboard
+--------------------------------------------------
+All: Auth required (editor+)
+
+GET    /
+  Response    : Standard overview statistics (counts, top blogs, tags, searches)
+
+
+--------------------------------------------------
 ANALYTICS ROUTES: /api/v1/analytics
 --------------------------------------------------
 All: Auth required (editor+)

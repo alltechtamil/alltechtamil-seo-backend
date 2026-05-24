@@ -19,6 +19,19 @@ export class CategoryService {
 
       return await Category.findAll({
         where: whereClause,
+        attributes: {
+          include: [
+            [
+              sequelize.literal(`(
+                SELECT COUNT(*)::integer
+                FROM blogs AS b
+                WHERE b.category_id = "Category".id
+                AND b.status = 'published'
+              )`),
+              'blogsCount'
+            ]
+          ]
+        },
         order: [['sortOrder', 'ASC']],
       });
     } catch (error) {

@@ -7,6 +7,7 @@ import blogRoutes from './blog.routes';
 import imageRoutes from './image.routes';
 import publicRoutes from './public.routes';
 import analyticsRoutes from './analytics.routes';
+import dashboardRoutes from './dashboard.routes';
 import adRoutes from './ad.routes';
 import errorLogRoutes from './error-log.routes';
 
@@ -34,6 +35,7 @@ router.use('/v1/admin/categories', categoryRoutes);
 router.use('/v1/admin/tags', tagRoutes);
 router.use('/v1/admin/blogs', blogRoutes);
 router.use('/v1/admin/images', imageRoutes);
+router.use('/v1/admin/dashboard', dashboardRoutes);
 router.use('/v1/admin/analytics', analyticsRoutes);
 router.use('/v1/admin/ads', adRoutes);
 router.use('/v1/admin/error-logs', errorLogRoutes);
@@ -42,3 +44,4 @@ router.use('/v1/admin/error-logs', errorLogRoutes);
 router.use('/v1/public', publicRoutes);
 
 export default router;
+
