@@ -27,7 +27,7 @@ export const config = {
     password: process.env.SUPERADMIN_PASSWORD || 'Admin@123',
   },
   cors: {
-    allowedOrigins: (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'http://localhost:3000').split(','),
+    allowedOrigins: (process.env.ALLOWED_ORIGINS || process.env.FRONTEND_URL || 'https://alltechtamil.in,http://localhost:3000').split(','),
   },
   database: {
     host: required('DB_HOST'),
