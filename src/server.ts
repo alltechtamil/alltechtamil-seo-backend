@@ -35,7 +35,7 @@ const bootstrap = async (): Promise<void> => {
     }
 
     // 3. Initialize and Boot HTTP Server listener
-    const server = app.listen(config.server.port, () => {
+    const server = app.listen(config.server.port, '0.0.0.0', () => {
       logger.info(
         `🚀 AllTechTamil Blogger API Backend Engine running on port ${config.server.port} in [${config.server.env}] mode.`
       );
