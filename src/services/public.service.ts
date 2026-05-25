@@ -55,14 +55,17 @@ export class PublicService {
         whereClause.isFeatured = true;
       }
 
-      const { rows, count } = await Blog.findAndCountAll({
+      const count = await Blog.count({
+        where: whereClause,
+      });
+
+      const rows = await Blog.findAll({
         where: whereClause,
         limit: pagination.limit,
         offset: pagination.offset,
         order: [['publishedAt', 'DESC']],
         attributes: { exclude: EXCLUDE_LIST_ATTRIBUTES },
         include: PUBLIC_INCLUDES,
-        distinct: true,
       });
 
       const meta = buildPaginationMeta(count, page, pagination.limit);
@@ -111,17 +114,22 @@ export class PublicService {
     page: number
   ): Promise<{ rows: Blog[]; count: number; meta: IPaginationMeta }> {
     try {
-      const { rows, count } = await Blog.findAndCountAll({
-        where: {
-          status: BlogStatus.PUBLISHED,
-          [Op.or]: [{ title: { [Op.iLike]: `%${query}%` } }, { excerpt: { [Op.iLike]: `%${query}%` } }],
-        },
+      const whereClause = {
+        status: BlogStatus.PUBLISHED,
+        [Op.or]: [{ title: { [Op.iLike]: `%${query}%` } }, { excerpt: { [Op.iLike]: `%${query}%` } }],
+      };
+
+      const count = await Blog.count({
+        where: whereClause,
+      });
+
+      const rows = await Blog.findAll({
+        where: whereClause,
         limit: pagination.limit,
         offset: pagination.offset,
         order: [['publishedAt', 'DESC']],
         attributes: { exclude: EXCLUDE_LIST_ATTRIBUTES },
         include: PUBLIC_INCLUDES,
-        distinct: true,
       });
 
       const meta = buildPaginationMeta(count, page, pagination.limit);
@@ -150,7 +158,20 @@ export class PublicService {
     page: number
   ): Promise<{ rows: Blog[]; count: number; meta: IPaginationMeta }> {
     try {
-      const { rows, count } = await Blog.findAndCountAll({
+      const count = await Blog.count({
+        where: {
+          status: BlogStatus.PUBLISHED,
+        },
+        include: [
+          {
+            model: Category,
+            where: { slug: categorySlug },
+            attributes: [],
+          }
+        ],
+      });
+
+      const rows = await Blog.findAll({
         where: {
           status: BlogStatus.PUBLISHED,
         },
@@ -173,7 +194,6 @@ export class PublicService {
           { model: Image, attributes: ['id', 'cdnUrl', 'width', 'height', 'altText'] },
           { model: BlogAnalytics, attributes: ['totalViews', 'avgReadTimeSec'] },
         ],
-        distinct: true,
       });
 
       const meta = buildPaginationMeta(count, page, pagination.limit);
@@ -194,7 +214,20 @@ export class PublicService {
     page: number
   ): Promise<{ rows: Blog[]; count: number; meta: IPaginationMeta }> {
     try {
-      const { rows, count } = await Blog.findAndCountAll({
+      const count = await Blog.count({
+        where: {
+          status: BlogStatus.PUBLISHED,
+        },
+        include: [
+          {
+            model: Tag,
+            where: { slug: tagSlug },
+            attributes: [],
+          }
+        ],
+      });
+
+      const rows = await Blog.findAll({
         where: {
           status: BlogStatus.PUBLISHED,
         },
@@ -218,7 +251,6 @@ export class PublicService {
           { model: Image, attributes: ['id', 'cdnUrl', 'width', 'height', 'altText'] },
           { model: BlogAnalytics, attributes: ['totalViews', 'avgReadTimeSec'] },
         ],
-        distinct: true,
       });
 
       const meta = buildPaginationMeta(count, page, pagination.limit);

@@ -54,7 +54,11 @@ export class BlogService {
     if (filters.isFeatured !== undefined) whereClause.isFeatured = filters.isFeatured;
 
     try {
-      const { rows, count } = await Blog.findAndCountAll({
+      const count = await Blog.count({
+        where: whereClause,
+      });
+
+      const rows = await Blog.findAll({
         where: whereClause,
         limit: pagination.limit,
         offset: pagination.offset,
@@ -68,7 +72,6 @@ export class BlogService {
           { model: Category, attributes: ['id', 'name', 'slug'] },
           { model: Tag, through: { attributes: [] }, attributes: ['id', 'name', 'slug'] },
         ],
-        distinct: true, // Critical for accurate count when using Many-to-Many Tag joins
       });
 
       const meta = buildPaginationMeta(count, page, pagination.limit);
