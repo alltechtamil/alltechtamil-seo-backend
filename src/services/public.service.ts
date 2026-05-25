@@ -32,7 +32,6 @@ const EXCLUDE_LIST_ATTRIBUTES = [
   'focusKeyword',
   'canonicalUrl',
   'structuredData',
-  'ogImageUrl',
   'ogTitle',
   'ogDescription',
 ];

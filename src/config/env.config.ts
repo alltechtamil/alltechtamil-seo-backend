@@ -35,7 +35,7 @@ export const config = {
     name: required('DB_NAME'),
     user: required('DB_USER'),
     password: required('DB_PASSWORD'),
-    ssl: process.env.DB_SSL === 'true',
+    ssl: String(process.env.DB_SSL).trim().toLowerCase() === 'true',
   },
   jwt: {
     accessSecret: required('JWT_ACCESS_SECRET'),
