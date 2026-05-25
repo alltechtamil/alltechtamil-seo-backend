@@ -20,7 +20,7 @@ const REFRESH_COOKIE_NAME = 'refreshToken';
 const refreshCookieOptions = () => ({
   httpOnly: true,
   secure: config.server.env === 'production',
-  sameSite: 'strict' as const,
+  sameSite: config.server.env === 'production' ? 'none' as const : 'strict' as const,
   maxAge: COOKIE_EXPIRY.REFRESH_TOKEN_MS,
   path: '/', // Changed to '/' so Next.js frontend proxy can read it on /admin navigations
 });
@@ -32,7 +32,7 @@ const refreshCookieOptions = () => ({
 const clearCookieOptions = () => ({
   httpOnly: true,
   secure: config.server.env === 'production',
-  sameSite: 'strict' as const,
+  sameSite: config.server.env === 'production' ? 'none' as const : 'strict' as const,
   path: '/',
 });
 
